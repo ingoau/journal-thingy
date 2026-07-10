@@ -1,8 +1,8 @@
 @import 'tailwindcss';
-@import "tw-animate-css";
-@import "shadcn-svelte/tailwind.css";
-@import "@fontsource-variable/outfit";
-@import "@fontsource-variable/noto-serif";
+@import 'tw-animate-css';
+@import 'shadcn-svelte/tailwind.css';
+@import '@fontsource-variable/outfit';
+@import '@fontsource-variable/noto-serif';
 
 @custom-variant dark (&:is(.dark *));
 
