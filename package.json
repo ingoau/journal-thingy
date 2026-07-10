@@ -1,0 +1,43 @@
+{
+  "name": "journal-thingy",
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "apps/*",
+      "packages/*"
+    ],
+    "catalog": {
+      "dotenv": "^17.4.2",
+      "zod": "^4.4.3",
+      "typescript": "^6",
+      "@types/node": "^22.13.14",
+      "better-auth": "1.6.23"
+    }
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --filter '*' dev",
+    "build": "bun run --filter '*' build",
+    "check-types": "bun run --filter '*' check-types",
+    "dev:web": "bun run --filter web dev",
+    "db:push": "bun run --filter @journal-thingy/db db:push",
+    "db:studio": "bun run --filter @journal-thingy/db db:studio",
+    "db:generate": "bun run --filter @journal-thingy/db db:generate",
+    "db:migrate": "bun run --filter @journal-thingy/db db:migrate",
+    "db:start": "bun run --filter @journal-thingy/db db:start",
+    "db:watch": "bun run --filter @journal-thingy/db db:watch",
+    "db:stop": "bun run --filter @journal-thingy/db db:stop",
+    "db:down": "bun run --filter @journal-thingy/db db:down"
+  },
+  "dependencies": {
+    "@journal-thingy/env": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@journal-thingy/config": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  },
+  "packageManager": "bun@1.3.14"
+}

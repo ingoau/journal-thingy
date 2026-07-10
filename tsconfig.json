@@ -1,0 +1,3 @@
+{
+  "extends": "@journal-thingy/config/tsconfig.base.json"
+}
