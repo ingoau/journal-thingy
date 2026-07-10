@@ -26,7 +26,8 @@ export default defineConfig(
 				{
 					script: ['ts']
 				}
-			]
+			],
+			'svelte/no-navigation-without-resolve': 'off'
 		}
 	},
 	{
