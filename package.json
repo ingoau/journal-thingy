@@ -55,6 +55,8 @@
 		"vite": "^8.0.16"
 	},
 	"dependencies": {
+		"@types/luxon": "^3.7.2",
+		"luxon": "^3.7.2",
 		"mode-watcher": "^1.1.0"
 	}
 }
