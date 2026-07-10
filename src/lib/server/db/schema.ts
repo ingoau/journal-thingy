@@ -18,7 +18,7 @@ export const entry = sqliteTable(
     createdAt: integer({ mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
     updatedAt: integer({ mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
 	},
-	(table) => [check('score', sql`${table.score} BETWEEN 0 AND 10`)]
+	(table) => [check('score', sql`${table.score} BETWEEN 0 AND 5`)]
 );
 
 /*
