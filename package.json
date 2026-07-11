@@ -62,6 +62,7 @@
 		"@tiptap/pm": "^3.27.3",
 		"@tiptap/starter-kit": "^3.27.3",
 		"@types/luxon": "^3.7.2",
+		"isomorphic-dompurify": "^3.18.0",
 		"luxon": "^3.7.2",
 		"mode-watcher": "^1.1.0",
 		"resend": "^6.17.2"
