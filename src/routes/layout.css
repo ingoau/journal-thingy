@@ -3,6 +3,8 @@
 @import 'shadcn-svelte/tailwind.css';
 @import '@fontsource-variable/outfit';
 @import '@fontsource-variable/noto-serif';
+@import 'uploadthing/tw/v4';
+@source '../../node_modules/@uploadthing/svelte/dist'; /** <-- depends on your project structure */
 
 @custom-variant dark (&:is(.dark *));
 
