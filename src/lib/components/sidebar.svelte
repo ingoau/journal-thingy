@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { User } from 'better-auth';
-	import { IconChevronUp, IconLogout } from '@tabler/icons-svelte';
+	import { IconBook2, IconChevronUp, IconLogout } from '@tabler/icons-svelte';
 	import { cn } from '$lib/utils';
 	import { page } from '$app/state';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
@@ -17,7 +17,7 @@
 	<a
 		{href}
 		class={cn(
-			'font-heading text-2xl hover:text-foreground text-muted-foreground',
+			'font-heading text-2xl hover:text-foreground text-muted-foreground active:scale-97 duration-200  origin-left',
 			href === page.url.pathname && 'text-foreground'
 		)}
 	>
@@ -25,7 +25,8 @@
 	</a>
 {/snippet}
 
-<div class="top-0 left-0 p-6 fixed h-full flex flex-col gap-2">
+<div class="top-0 left-0 p-8 fixed h-full flex flex-col gap-4">
+	<IconBook2 size={32} />
 	{#each items as item, index (index)}
 		{@render navLink(item.href, item.name)}
 	{/each}
