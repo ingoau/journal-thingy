@@ -74,8 +74,8 @@
 				<form onsubmit={submitEmail} class="space-y-4">
 					<Input type="email" placeholder="name@example.com" bind:value={email} required />
 
-					<div class="w-full">
-						<Button type="submit" class="ml-auto" disabled={loading}>
+					<div class="w-full flex justify-end">
+						<Button type="submit" disabled={loading}>
 							{loading ? 'Sending...' : 'Continue'}
 						</Button>
 					</div>
