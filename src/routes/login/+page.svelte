@@ -6,6 +6,8 @@
 
 	import { authClient } from '$lib/auth-client';
 
+  import { goto } from '$app/navigation'
+
 	let step: 'email' | 'otp' = $state('email');
 
 	let email = $state('');
@@ -55,7 +57,7 @@
 			return;
 		}
 
-		console.log('logged in yayay'); // TODO
+		await goto("/")
 	}
 </script>
 
