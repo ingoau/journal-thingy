@@ -5,11 +5,16 @@
 	import { Slider } from "$lib/components/ui/slider/index.js";
     import { Textarea } from "$lib/components/ui/textarea/index.js";
 
-    const {data} = $props();
+    const {entry}: {
+        entry: {
+ date: Date;
+ content: string;
+ score: number | null;
+    }} = $props();
 
-    const dateString = DateTime.fromSeconds(data.date).toFormat("d MMM yyyy")
+    const dateString = DateTime.fromJSDate(entry.date).toFormat("d MMM yyyy")
 
-    let score = $state(data.score);
+    let score = $state(entry.score || 0);
 </script>
 
 <Dialog.Root>
@@ -25,7 +30,7 @@
                 <h2 class="text-2xl font-heading">{dateString}</h2>
                 <div class="flex flex-row gap-1">
                 {#each Array(5), index (index)}
-                    {#if index < data.score}
+                    {#if index < (entry.score || 0)}
                         <IconStarFilled stroke={2} />
                     {:else}
                         <IconStar stroke={2} />
@@ -34,7 +39,7 @@
 
                 </div>
             </div>
-            <div class="font-heading p-1">{data.content}</div>
+            <div class="font-heading p-1">{entry.content}</div>
             </div>
         </div>
     {/snippet}

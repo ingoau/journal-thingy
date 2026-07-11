@@ -2,10 +2,7 @@
 	import Sidebar from '$lib/components/sidebar.svelte';
 	import Entry from '$lib/components/entry.svelte';
 
-	const data = [
-		{ date: 1783834820, content: 'content', score: 3 },
-		{ date: 1783721820, content: 'content', score: 4 }
-	];
+	const {data} = $props();
 
 </script>
 
@@ -14,7 +11,10 @@
 
 
 <div class="mx-auto max-w-3xl w-full p-6">
-	{#each data as data, index (index)}
-<Entry {data}/>	{/each}
-	
+	{#each data.entries as entry, index (index)}
+<Entry entry={entry}/>	{/each}
+<form method="POST" action="?/test">
+	<button type="submit">Submit</button>
+</form>
 </div>
+
