@@ -8,10 +8,20 @@ import { emailOTP } from 'better-auth/plugins';
 import { sendOTPEmail } from '$lib/server/emails/email-service';
 
 export const auth = betterAuth({
+	user: {
+		additionalFields: {
+			onboarded: {
+				type: 'boolean',
+				defaultValue: false,
+				input: true
+			}
+		}
+	},
 	baseURL: env.ORIGIN,
 	secret: env.BETTER_AUTH_SECRET,
 	database: drizzleAdapter(db, { provider: 'sqlite' }),
 	emailAndPassword: { enabled: true },
+	
 	plugins: [
 		emailOTP({
 			async sendVerificationOTP({ email, otp, type }) {
