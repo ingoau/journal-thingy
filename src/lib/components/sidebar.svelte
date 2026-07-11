@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { User } from 'better-auth';
-	import { IconChevronUp } from '@tabler/icons-svelte';
+	import { IconChevronUp, IconLogout } from '@tabler/icons-svelte';
 	import { cn } from '$lib/utils';
 	import { page } from '$app/state';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 
 	let { user }: { user: User } = $props();
 
@@ -30,8 +31,18 @@
 	{/each}
 	<div class="grow"></div>
 	{@render navLink('/settings', 'Settings')}
-	<div class="font-heading text-2xl text-foreground flex flex-row items-center gap-2">
-		{user.name || user.email}
-		<IconChevronUp stroke={2} />
-	</div>
+	<DropdownMenu.Root>
+		<DropdownMenu.Trigger
+			class="font-heading text-2xl text-foreground flex flex-row items-center gap-2"
+		>
+			{user.name || user.email}
+			<IconChevronUp stroke={2} />
+		</DropdownMenu.Trigger>
+		<DropdownMenu.Content>
+			<DropdownMenu.Item>
+				<IconLogout stroke={2} />
+				Logout
+			</DropdownMenu.Item>
+		</DropdownMenu.Content>
+	</DropdownMenu.Root>
 </div>
