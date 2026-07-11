@@ -14,7 +14,7 @@
 
 	const items = [
 		{ name: 'Timeline', href: '/' },
-		{ name: 'Calender', href: '/calender' }
+		{ name: 'Calendar', href: '/calendar' }
 	];
 
 	async function logout() {
