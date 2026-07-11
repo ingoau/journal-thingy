@@ -15,6 +15,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Timeline</title>
+</svelte:head>
+
 <div class="mx-auto max-w-3xl w-full p-6">
 	<div class="relative ml-4 border-secondary-foreground">
 		<div class="fixed border-l h-full top-0"></div>

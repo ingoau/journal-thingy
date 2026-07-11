@@ -7,6 +7,10 @@
     let nameInput = $state('');
 </script>
 
+<svelte:head>
+	<title>Onboarding</title>
+</svelte:head>
+
 {#if step === 'start'}
     <div class="p-4">
         <h1 class="text-2xl">Hi there :D Welcome to your new journal! Before you get engulfed beyond our help, we need to set up a few things :D</h1>
