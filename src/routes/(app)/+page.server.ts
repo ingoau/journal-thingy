@@ -24,7 +24,6 @@ export const actions = {
         }
         await db.insert(entry).values({
             userId: locals.user.id,
-            date: new Date(),
             content: "sladkfjadlkfjalsdkjfaosdhflksdchjlksdjhglkaejshfadkh eushtaudfhaoiusehrljasdfokualdfioua",
             score: 3
         });
