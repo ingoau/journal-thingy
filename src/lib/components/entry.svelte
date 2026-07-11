@@ -7,6 +7,7 @@
 		showDate = true
 	}: {
 		entry: {
+			id: string;
 			createdAt: string | Date;
 			content: string;
 		};
@@ -17,6 +18,7 @@
 	const dateString = $derived(createdAt.toFormat('d MMM yyyy'));
 	const timeString = $derived(createdAt.toFormat('h:mm a'));
 
+	let content = $state(entry.content);
 	let editing = $state(false);
 	let clickCoords = $state<{ x: number; y: number } | null>(null);
 
@@ -28,6 +30,10 @@
 	function stopEditing() {
 		editing = false;
 		clickCoords = null;
+	}
+
+	function handleSave(html: string) {
+		content = html;
 	}
 </script>
 
@@ -47,9 +53,15 @@
 				<div class="relative font-heading">
 					{#if editing}
 						{#await import('./entry-editor.svelte')}
-							<p class="entry-content">{entry.content}</p>
+							<div class="entry-content">{@html content}</div>
 						{:then { default: EntryEditor }}
-							<EntryEditor content={entry.content} {clickCoords} onclose={stopEditing} />
+							<EntryEditor
+								id={entry.id}
+								{content}
+								{clickCoords}
+								onsave={handleSave}
+								onclose={stopEditing}
+							/>
 						{/await}
 					{:else}
 						<button
@@ -57,7 +69,7 @@
 							class="entry-content w-full cursor-text text-left"
 							onmousedown={startEditing}
 						>
-							{entry.content}
+							{@html content}
 						</button>
 					{/if}
 				</div>
@@ -70,5 +82,21 @@
 <style>
 	.entry-content {
 		outline: none;
+	}
+
+	:global(.entry-content h1) {
+		font-size: 1.5rem;
+		font-weight: 600;
+		line-height: 1.3;
+	}
+
+	:global(.entry-content h2) {
+		font-size: 1.25rem;
+		font-weight: 600;
+		line-height: 1.3;
+	}
+
+	:global(.entry-content p + p) {
+		margin-top: 0.5rem;
 	}
 </style>

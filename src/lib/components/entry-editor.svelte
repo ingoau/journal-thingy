@@ -4,12 +4,16 @@
 	import { StarterKit } from '@tiptap/starter-kit';
 
 	const {
+		id,
 		content,
 		clickCoords = null,
+		onsave,
 		onclose
 	}: {
+		id: string;
 		content: string;
 		clickCoords?: { x: number; y: number } | null;
+		onsave?: (html: string) => void;
 		onclose?: () => void;
 	} = $props();
 
@@ -21,7 +25,19 @@
 			element,
 			extensions: [StarterKit],
 			content,
-			onBlur: () => onclose?.()
+			onBlur: async () => {
+				const html = editor?.getHTML();
+				if (html != null) {
+					if (html !== content) {
+						const body = new FormData();
+						body.set('id', id);
+						body.set('content', html);
+						await fetch('?/update', { method: 'POST', body });
+					}
+					onsave?.(html);
+				}
+				onclose?.();
+			}
 		});
 
 		void (async () => {
