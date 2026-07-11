@@ -1,9 +1,6 @@
 <script lang="ts">
 	import { IconStar, IconStarFilled } from '@tabler/icons-svelte';
 	import { DateTime } from 'luxon';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { Slider } from '$lib/components/ui/slider/index.js';
-	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { cn } from '$lib/utils';
 
 	const {
