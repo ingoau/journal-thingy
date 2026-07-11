@@ -73,10 +73,10 @@
 		<DropdownMenu.Trigger
 			class="font-heading text-2xl text-foreground flex flex-row items-center gap-2 w-full"
 		>
-			<p class="truncate w-full">{user?.name || user?.email}</p>
+			<p class="truncate w-full text-start">{user?.name || user?.email}</p>
 			<IconChevronUp stroke={2} />
 		</DropdownMenu.Trigger>
-		<DropdownMenu.Content>
+		<DropdownMenu.Content class="w-fit" align="end">
 			<DropdownMenu.Item onclick={logout}>
 				<IconLogout stroke={2} />
 				Logout

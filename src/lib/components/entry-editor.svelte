@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy, tick } from 'svelte';
+	import { invalidateAll } from '$app/navigation';
 	import { Editor } from '@tiptap/core';
 	import { StarterKit } from '@tiptap/starter-kit';
 
@@ -28,13 +29,21 @@
 			onBlur: async () => {
 				const html = editor?.getHTML();
 				if (html != null) {
-					if (html !== content) {
+					const isEmpty = html === '<p></p>' || html.trim() === '';
+					if (id === 'new') {
+						if (!isEmpty) {
+							const body = new FormData();
+							body.set('content', html);
+							await fetch('?/create', { method: 'POST', body });
+							await invalidateAll();
+						}
+					} else if (html !== content) {
 						const body = new FormData();
 						body.set('id', id);
 						body.set('content', html);
 						await fetch('?/update', { method: 'POST', body });
+						onsave?.(html);
 					}
-					onsave?.(html);
 				}
 				onclose?.();
 			}

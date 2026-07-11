@@ -10,7 +10,8 @@ export const load: PageServerLoad = async ({locals}) => {
         redirect(303, '/login');
     }
     const entries = await db.query.entry.findMany({
-        where: eq(entry.userId, locals.user.id)
+        where: eq(entry.userId, locals.user.id),
+        orderBy: (entries, {asc}) => [asc(entries.createdAt)]
     });
     return {
         entries,
@@ -27,6 +28,20 @@ export const actions = {
             userId: locals.user.id,
             content: "sladkfjadlkfjalsdkjfaosdhflksdchjlksdjhglkaejshfadkh eushtaudfhaoiusehrljasdfokualdfioua",
             score: 3
+        });
+    },
+    create: async ({ request, locals }) => {
+        if (!locals.user) {
+            error(401, 'Unauthorized');
+        }
+        const data = await request.formData();
+        const content = sanitizeEntryHtml(String(data.get('content')));
+        if (!content || content === '<p></p>') {
+            return;
+        }
+        await db.insert(entry).values({
+            userId: locals.user.id,
+            content
         });
     },
     update: async ({ request, locals }) => {
