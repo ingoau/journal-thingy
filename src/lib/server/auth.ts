@@ -12,7 +12,8 @@ export const auth = betterAuth({
 		additionalFields: {
 			onboarded: {
 				type: 'boolean',
-				default: false
+				defaultValue: false,
+				input: true
 			}
 		}
 	},
