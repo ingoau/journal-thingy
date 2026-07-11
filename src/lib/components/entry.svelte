@@ -77,14 +77,10 @@
 				</div>
 				<p class="text-sm text-muted-foreground">{timeString}</p>
 				{#if entry.attachments?.length}
-					<div class="flex flex-wrap gap-2">
+					<div class="flex overflow-x-auto gap-2 rounded-lg overflow-hidden">
 						{#each entry.attachments as attachment, index (`${attachment.type}-${index}`)}
 							{#if attachment.type === 'image'}
-								<img
-									src={attachment.url}
-									alt=""
-									class="max-h-48 rounded-lg object-cover"
-								/>
+								<img src={attachment.url} alt="" class="max-h-48 rounded-lg object-cover" />
 							{/if}
 						{/each}
 					</div>
