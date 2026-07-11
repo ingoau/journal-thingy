@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { IconStar, IconStarFilled } from '@tabler/icons-svelte';
 	import { DateTime } from 'luxon';
+	import SafeHtml from '$lib/components/safe-html.svelte';
+	import { sanitizeEntryHtml } from '$lib/sanitize';
 	import { cn } from '$lib/utils';
 
 	const {
@@ -8,9 +9,9 @@
 		showDate = true
 	}: {
 		entry: {
+			id: string;
 			createdAt: string | Date;
 			content: string;
-			score: number | null;
 		};
 		showDate?: boolean;
 	} = $props();
@@ -18,22 +19,26 @@
 	const createdAt = $derived(DateTime.fromJSDate(new Date(entry.createdAt)));
 	const dateString = $derived(createdAt.toFormat('d MMM yyyy'));
 	const timeString = $derived(createdAt.toFormat('h:mm a'));
-	const moodScore = $derived(entry.score || 0);
 
-	let score = $state(entry.score || 0);
+	let contentOverride = $state<string | null>(null);
+	const content = $derived(contentOverride ?? entry.content);
+	let editing = $state(false);
+	let clickCoords = $state<{ x: number; y: number } | null>(null);
+
+	function startEditing(event: MouseEvent) {
+		clickCoords = { x: event.clientX, y: event.clientY };
+		editing = true;
+	}
+
+	function stopEditing() {
+		editing = false;
+		clickCoords = null;
+	}
+
+	function handleSave(html: string) {
+		contentOverride = sanitizeEntryHtml(html);
+	}
 </script>
-
-{#snippet stars(className?: string)}
-	<div class={cn('flex flex-row gap-1', className)}>
-		{#each Array(5), index (index)}
-			{#if index < moodScore}
-				<IconStarFilled stroke={2} />
-			{:else}
-				<IconStar stroke={2} />
-			{/if}
-		{/each}
-	</div>
-{/snippet}
 
 <div class="relative rounded-xl p-2">
 	<div
@@ -44,19 +49,62 @@
 	></div>
 	<div class="flex flex-col gap-2 w-full">
 		{#if showDate}
-			<div class="flex items-center justify-between">
-				<h2 class="text-2xl font-heading">{dateString}</h2>
-				{@render stars()}
-			</div>
+			<h2 class="text-2xl font-heading">{dateString}</h2>
 		{/if}
-		<div class={cn('flex gap-3', showDate ? 'flex-col' : 'items-start justify-between')}>
-			<div class={cn('flex flex-col', showDate ? 'gap-2' : 'gap-1 min-w-0')}>
-				<div class="font-heading">{entry.content}</div>
+		<div class="flex gap-3 flex-col">
+			<div class="flex flex-col gap-2">
+				<div class="relative font-heading">
+					{#if editing}
+						{#await import('./entry-editor.svelte')}
+							<div class="entry-content"><SafeHtml html={content} /></div>
+						{:then { default: EntryEditor }}
+							<EntryEditor
+								id={entry.id}
+								{content}
+								{clickCoords}
+								onsave={handleSave}
+								onclose={stopEditing}
+							/>
+						{/await}
+					{:else}
+						<div
+							role="button"
+							tabindex="0"
+							class="entry-content w-full cursor-text text-left"
+							onmousedown={startEditing}
+						>
+							<SafeHtml html={content} />
+						</div>
+					{/if}
+				</div>
 				<p class="text-sm text-muted-foreground">{timeString}</p>
 			</div>
-			{#if !showDate}
-				{@render stars('shrink-0 pt-1')}
-			{/if}
 		</div>
 	</div>
 </div>
+
+<style>
+	.entry-content {
+		outline: none;
+	}
+
+	:global(.entry-content p:empty::before) {
+		content: '\00a0';
+	}
+
+	:global(.entry-content h1) {
+		font-size: 1.5rem;
+		font-weight: 600;
+		line-height: 1.3;
+	}
+
+	:global(.entry-content h2) {
+		font-size: 1.25rem;
+		font-weight: 600;
+		line-height: 1.3;
+	}
+
+	:global(.entry-content p + p) {
+		margin-top: 0.5rem;
+	}
+</style>
