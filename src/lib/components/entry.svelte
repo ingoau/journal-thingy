@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { DateTime } from 'luxon';
+	import SafeHtml from '$lib/components/safe-html.svelte';
+	import { sanitizeEntryHtml } from '$lib/sanitize';
 	import { cn } from '$lib/utils';
 
 	const {
@@ -34,7 +36,7 @@
 	}
 
 	function handleSave(html: string) {
-		contentOverride = html;
+		contentOverride = sanitizeEntryHtml(html);
 	}
 </script>
 
@@ -54,7 +56,7 @@
 				<div class="relative font-heading">
 					{#if editing}
 						{#await import('./entry-editor.svelte')}
-							<div class="entry-content">{@html content}</div>
+							<div class="entry-content"><SafeHtml html={content} /></div>
 						{:then { default: EntryEditor }}
 							<EntryEditor
 								id={entry.id}
@@ -71,7 +73,7 @@
 							class="entry-content w-full cursor-text text-left"
 							onmousedown={startEditing}
 						>
-							{@html content}
+							<SafeHtml html={content} />
 						</div>
 					{/if}
 				</div>

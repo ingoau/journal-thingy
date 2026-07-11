@@ -1,3 +1,4 @@
+import { sanitizeEntryHtml } from '$lib/sanitize';
 import { db } from '$lib/server/db';
 import { error, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
@@ -35,7 +36,7 @@ export const actions = {
         const data = await request.formData();
         await db
             .update(entry)
-            .set({ content: String(data.get('content')) })
+            .set({ content: sanitizeEntryHtml(String(data.get('content'))) })
             .where(
                 and(eq(entry.id, String(data.get('id'))), eq(entry.userId, locals.user.id))
             );
