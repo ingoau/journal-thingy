@@ -7,7 +7,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		error(401, 'Unauthorized');
 	}
 
-	const formData = await request.formData();
+	let formData: FormData;
+	try {
+		formData = await request.formData();
+	} catch {
+		error(400, 'Expected multipart form data with an audio file');
+	}
+
 	const audio = formData.get('audio');
 
 	if (!(audio instanceof File) || audio.size === 0) {
