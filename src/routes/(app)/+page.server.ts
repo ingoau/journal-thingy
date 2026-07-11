@@ -29,6 +29,20 @@ export const actions = {
             score: 3
         });
     },
+    create: async ({ request, locals }) => {
+        if (!locals.user) {
+            error(401, 'Unauthorized');
+        }
+        const data = await request.formData();
+        const content = sanitizeEntryHtml(String(data.get('content')));
+        if (!content || content === '<p></p>') {
+            return;
+        }
+        await db.insert(entry).values({
+            userId: locals.user.id,
+            content
+        });
+    },
     update: async ({ request, locals }) => {
         if (!locals.user) {
             error(401, 'Unauthorized');
