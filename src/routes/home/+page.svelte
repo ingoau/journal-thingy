@@ -7,7 +7,7 @@
 </script>
 
 <!--Sidebar-->
-<Sidebar />
+<Sidebar user={data.user} />
 
 
 <div class="mx-auto max-w-3xl w-full p-6">
