@@ -5,6 +5,7 @@ import { svelteKitHandler } from 'better-auth/svelte-kit';
 
 const handleBetterAuth: Handle = async ({ event, resolve }) => {
 	const session = await auth.api.getSession({ headers: event.request.headers });
+	console.log("somethinig has been hit", event.request.method, event.url.pathname)
 
 	if (session) {
 		event.locals.session = session.session;
