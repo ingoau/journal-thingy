@@ -1,49 +1,69 @@
 <script lang="ts">
-	import { IconStar, IconStarFilled, IconPointFilled } from '@tabler/icons-svelte';
+	import { IconStar, IconStarFilled } from '@tabler/icons-svelte';
 	import { DateTime } from 'luxon';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Slider } from '$lib/components/ui/slider/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
+	import { cn } from '$lib/utils';
 
 	const {
-		entry
+		entry,
+		showDate = true
 	}: {
 		entry: {
 			createdAt: string | Date;
 			content: string;
 			score: number | null;
 		};
+		showDate?: boolean;
 	} = $props();
 
-	const dateString = $derived(
-		DateTime.fromJSDate(new Date(entry.createdAt)).toFormat('d MMM yyyy')
-	);
+	const createdAt = $derived(DateTime.fromJSDate(new Date(entry.createdAt)));
+	const dateString = $derived(createdAt.toFormat('d MMM yyyy'));
+	const timeString = $derived(createdAt.toFormat('h:mm a'));
+	const moodScore = $derived(entry.score || 0);
 
 	let score = $state(entry.score || 0);
 </script>
 
+{#snippet stars(className?: string)}
+	<div class={cn('flex flex-row gap-1', className)}>
+		{#each Array(5), index (index)}
+			{#if index < moodScore}
+				<IconStarFilled stroke={2} />
+			{:else}
+				<IconStar stroke={2} />
+			{/if}
+		{/each}
+	</div>
+{/snippet}
+
 <Dialog.Root>
 	<Dialog.Trigger class="w-full text-left">
 		{#snippet child({ props })}
-			<div {...props} class="flex gap-5 pb-5 outline-muted-foreground rounded-md p-2 hover:outline">
-				<div class="flex flex-col items-center">
-					<IconPointFilled />
-					<div class="w-1 grow bg-secondary-foreground mt-2 rounded-2xl"></div>
-				</div>
+			<div {...props} class="relative rounded-md p-2 transition-colors hover:bg-muted/50">
+				<div
+					class={cn(
+						'absolute -left-4 size-2 bg-secondary-foreground rounded-full -translate-x-5/12',
+						showDate ? 'top-5' : 'top-5'
+					)}
+				></div>
 				<div class="flex flex-col gap-2 w-full">
-					<div class="flex items-center justify-between">
-						<h2 class="text-2xl font-heading">{dateString}</h2>
-						<div class="flex flex-row gap-1">
-							{#each Array(5), index (index)}
-								{#if index < (entry.score || 0)}
-									<IconStarFilled stroke={2} />
-								{:else}
-									<IconStar stroke={2} />
-								{/if}
-							{/each}
+					{#if showDate}
+						<div class="flex items-center justify-between">
+							<h2 class="text-2xl font-heading">{dateString}</h2>
+							{@render stars()}
 						</div>
+					{/if}
+					<div class={cn('flex gap-3', showDate ? 'flex-col' : 'items-start justify-between')}>
+						<div class={cn('flex flex-col', showDate ? 'gap-2' : 'gap-1 min-w-0')}>
+							<div class="font-heading p-1">{entry.content}</div>
+							<p class="text-sm text-muted-foreground">{timeString}</p>
+						</div>
+						{#if !showDate}
+							{@render stars('shrink-0 pt-1')}
+						{/if}
 					</div>
-					<div class="font-heading p-1">{entry.content}</div>
 				</div>
 			</div>
 		{/snippet}
