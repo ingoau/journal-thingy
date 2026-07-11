@@ -36,7 +36,7 @@
 		<DropdownMenu.Trigger
 			class="font-heading text-2xl text-foreground flex flex-row items-center gap-2"
 		>
-			{user.name || user.email}
+			{user?.name || user?.email}
 			<IconChevronUp stroke={2} />
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Content>
