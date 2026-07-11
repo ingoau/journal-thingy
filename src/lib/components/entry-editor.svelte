@@ -5,18 +5,38 @@
 	import Placeholder from '@tiptap/extension-placeholder';
 	import { StarterKit } from '@tiptap/starter-kit';
 
-	const {
+	let {
 		id,
 		content,
-		placeholder
+		placeholder,
+		insertText = $bindable()
 	}: {
 		id: string;
 		content: string;
 		placeholder?: string;
+		insertText?: (text: string) => void;
 	} = $props();
 
 	let element = $state<HTMLDivElement>();
 	let editor: Editor | null = null;
+
+	async function persist(html: string) {
+		const isEmpty = html === '<p></p>' || html.trim() === '';
+		if (id === 'new') {
+			if (!isEmpty) {
+				const body = new FormData();
+				body.set('content', html);
+				await fetch('?/create', { method: 'POST', body });
+				await invalidateAll();
+			}
+			editor?.commands.clearContent();
+		} else if (html !== content) {
+			const body = new FormData();
+			body.set('id', id);
+			body.set('content', html);
+			await fetch('?/update', { method: 'POST', body });
+		}
+	}
 
 	onMount(() => {
 		editor = new Editor({
@@ -26,28 +46,44 @@
 			onBlur: async () => {
 				const html = editor?.getHTML();
 				if (html == null) return;
-				const isEmpty = html === '<p></p>' || html.trim() === '';
-				if (id === 'new') {
-					if (!isEmpty) {
-						const body = new FormData();
-						body.set('content', html);
-						await fetch('?/create', { method: 'POST', body });
-						await invalidateAll();
-					}
-					editor?.commands.clearContent();
-				} else if (html !== content) {
-					const body = new FormData();
-					body.set('id', id);
-					body.set('content', html);
-					await fetch('?/update', { method: 'POST', body });
-				}
+				await persist(html);
 			}
 		});
+
+		insertText = (text: string) => {
+			const trimmed = text.trim();
+			if (!trimmed || !editor) return;
+
+			const paragraphs = trimmed
+				.split(/\n+/)
+				.map((line) => line.trim())
+				.filter(Boolean);
+
+			const isEmpty = editor.isEmpty;
+			const html = paragraphs.map((line) => `<p>${escapeHtml(line)}</p>`).join('');
+
+			if (isEmpty) {
+				editor.commands.setContent(html);
+			} else {
+				editor.commands.focus('end');
+				editor.commands.insertContent(html);
+			}
+
+			void persist(editor.getHTML());
+		};
 	});
 
 	onDestroy(() => {
 		editor?.destroy();
 	});
+
+	function escapeHtml(value: string): string {
+		return value
+			.replaceAll('&', '&amp;')
+			.replaceAll('<', '&lt;')
+			.replaceAll('>', '&gt;')
+			.replaceAll('"', '&quot;');
+	}
 </script>
 
 <div bind:this={element} class="entry-content w-full"></div>

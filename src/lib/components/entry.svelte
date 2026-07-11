@@ -9,11 +9,15 @@
 		IconPhoto,
 		IconLocation,
 		IconDotsVertical,
-		IconX
+		IconX,
+		IconMicrophone,
+		IconPlayerStopFilled,
+		IconLoader2
 	} from '@tabler/icons-svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { createUploadThing } from '$lib/utils/uploadthing';
 	import type { entry as entryTable } from '$lib/server/db/schema';
+	import { onDestroy } from 'svelte';
 
 	const { startUpload, isUploading } = createUploadThing('imageUploader', {
 		onClientUploadComplete: async (res) => {
@@ -39,6 +43,14 @@
 	} = $props();
 
 	let fileInput = $state<HTMLInputElement>();
+	let insertText = $state<(text: string) => void>();
+	let recording = $state(false);
+	let transcribing = $state(false);
+	let voiceError = $state<string | null>(null);
+
+	let mediaRecorder: MediaRecorder | null = null;
+	let mediaStream: MediaStream | null = null;
+	let recordedChunks: BlobPart[] = [];
 
 	const createdAt = $derived(DateTime.fromJSDate(new Date(entry.createdAt)));
 	const dateString = $derived(createdAt.toFormat('d MMM yyyy'));
@@ -71,6 +83,125 @@
 		await fetch('?/removeAttachment', { method: 'POST', body });
 		await invalidateAll();
 	}
+
+	function pickRecorderMimeType(): string | undefined {
+		const candidates = [
+			'audio/webm;codecs=opus',
+			'audio/webm',
+			'audio/mp4',
+			'audio/ogg;codecs=opus'
+		];
+		return candidates.find((type) => MediaRecorder.isTypeSupported(type));
+	}
+
+	function stopMediaTracks() {
+		mediaStream?.getTracks().forEach((track) => track.stop());
+		mediaStream = null;
+	}
+
+	async function startRecording() {
+		voiceError = null;
+		recordedChunks = [];
+
+		try {
+			mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+		} catch {
+			voiceError = 'Microphone permission is required for voice typing.';
+			return;
+		}
+
+		const mimeType = pickRecorderMimeType();
+		mediaRecorder = mimeType
+			? new MediaRecorder(mediaStream, { mimeType })
+			: new MediaRecorder(mediaStream);
+
+		mediaRecorder.ondataavailable = (event) => {
+			if (event.data.size > 0) recordedChunks.push(event.data);
+		};
+
+		mediaRecorder.onstop = () => {
+			void handleRecordingStop(mediaRecorder?.mimeType || mimeType || 'audio/webm');
+		};
+
+		mediaRecorder.start();
+		recording = true;
+	}
+
+	function stopRecording() {
+		if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
+		recording = false;
+		mediaRecorder.stop();
+	}
+
+	async function handleRecordingStop(mimeType: string) {
+		stopMediaTracks();
+		mediaRecorder = null;
+
+		const blob = new Blob(recordedChunks, { type: mimeType });
+		recordedChunks = [];
+
+		if (blob.size === 0) {
+			voiceError = 'No audio was captured. Try again.';
+			return;
+		}
+
+		transcribing = true;
+		voiceError = null;
+
+		try {
+			const extension = mimeType.includes('mp4')
+				? 'm4a'
+				: mimeType.includes('ogg')
+					? 'ogg'
+					: 'webm';
+			const formData = new FormData();
+			formData.set('audio', blob, `recording.${extension}`);
+
+			const response = await fetch('/api/transcribe', {
+				method: 'POST',
+				body: formData
+			});
+
+			if (!response.ok) {
+				const message =
+					response.status === 500
+						? 'Voice transcription is not configured.'
+						: 'Could not transcribe audio. Try again.';
+				voiceError = message;
+				return;
+			}
+
+			const data = (await response.json()) as { transcript?: string };
+			const transcript = data.transcript?.trim();
+			if (!transcript) {
+				voiceError = 'Nothing was transcribed. Try speaking a bit longer.';
+				return;
+			}
+
+			insertText?.(transcript);
+		} catch {
+			voiceError = 'Could not reach the transcription service.';
+		} finally {
+			transcribing = false;
+		}
+	}
+
+	async function toggleVoiceTyping() {
+		if (transcribing) return;
+		if (recording) {
+			stopRecording();
+			return;
+		}
+		await startRecording();
+	}
+
+	onDestroy(() => {
+		if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+			mediaRecorder.onstop = null;
+			mediaRecorder.stop();
+		}
+		stopMediaTracks();
+	});
 </script>
 
 <div class="relative rounded-xl p-2">
@@ -87,7 +218,12 @@
 		<div class="flex gap-3 justify-between">
 			<div class="flex flex-col gap-2 w-full">
 				<div class="relative font-heading w-full">
-					<EntryEditor id={entry.id} content={entry.content} placeholder="Write something..." />
+					<EntryEditor
+						id={entry.id}
+						content={entry.content}
+						placeholder="Write something..."
+						bind:insertText
+					/>
 				</div>
 				<p class="text-sm text-muted-foreground">{timeString}</p>
 				{#if entry.attachments?.length}
@@ -118,7 +254,7 @@
 						class="hidden"
 						onchange={handleFileSelect}
 					/>
-					<div class="flex flex-row gap-2">
+					<div class="flex flex-row gap-2 items-center">
 						<Button variant="secondary" onclick={pickPhotos} disabled={$isUploading}>
 							<IconPhoto />
 							{$isUploading ? 'Uploading...' : 'Add Photos'}
@@ -128,6 +264,25 @@
 							Add Location
 						</Button>
 						<div class="grow"></div>
+						<Button
+							variant="ghost"
+							size="icon"
+							class={cn(recording && 'text-destructive animate-pulse')}
+							onclick={toggleVoiceTyping}
+							disabled={transcribing}
+							aria-pressed={recording}
+						>
+							{#if transcribing}
+								<IconLoader2 class="animate-spin" />
+								<span class="sr-only">Transcribing</span>
+							{:else if recording}
+								<IconPlayerStopFilled />
+								<span class="sr-only">Stop voice typing</span>
+							{:else}
+								<IconMicrophone />
+								<span class="sr-only">Start voice typing</span>
+							{/if}
+						</Button>
 						<DropdownMenu.Root>
 							<DropdownMenu.Trigger>
 								{#snippet child({ props })}
@@ -146,6 +301,9 @@
 							</DropdownMenu.Content>
 						</DropdownMenu.Root>
 					</div>
+					{#if voiceError}
+						<p class="text-sm text-destructive">{voiceError}</p>
+					{/if}
 				{/if}
 			</div>
 		</div>
