@@ -8,7 +8,7 @@
 	let { user }: { user: User } = $props();
 
 	const items = [
-		{ name: 'Timeline', href: '/timeline' },
+		{ name: 'Timeline', href: '/' },
 		{ name: 'Calender', href: '/calender' }
 	];
 </script>
