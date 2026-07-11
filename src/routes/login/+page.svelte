@@ -33,15 +33,20 @@
 		loading = false;
 	}
 
-	async function submitOtp(event: { preventDefault: () => void }) {
-		event.preventDefault();
+	async function submitOtp(eventOrCode?: SubmitEvent | string) {
+		if (typeof eventOrCode !== 'string') {
+			eventOrCode?.preventDefault();
+		}
+
+		const code = typeof eventOrCode === 'string' ? eventOrCode : otp;
+		if (loading || code.length !== 6) return;
 
 		loading = true;
 		error = '';
 
 		const { error: err } = await authClient.signIn.emailOtp({
 			email,
-			otp
+			otp: code
 		});
 
 		if (err) {
@@ -77,7 +82,7 @@
 				</form>
 			{:else if step === 'otp'}
 				<form class="space-y-4" onsubmit={submitOtp}>
-					<InputOTP.Root maxlength={6} bind:value={otp}>
+					<InputOTP.Root maxlength={6} bind:value={otp} onComplete={submitOtp}>
 						{#snippet children({ cells })}
 							<InputOTP.Group>
 								{#each cells.slice(0, 3) as cell, index (index)}
