@@ -46,7 +46,7 @@ export async function sendEmail({ to, subject, template, variables }: SendEmailO
 				Authorization: `Bearer ${env.RESEND_API_KEY}`
 			},
 			body: JSON.stringify({
-				from: env.EMAIL_FROM || 'Journal Thingy <onboarding@resend.dev>',
+				from: env.EMAIL_FROM || 'Journal Thingy <verify@email.lordseriouspig.au>',
 				to: [to],
 				subject,
 				html
