@@ -44,7 +44,7 @@
 	<div
 		class={cn(
 			'absolute -left-4 size-2 bg-secondary-foreground rounded-full -translate-x-5/12',
-			showDate ? 'top-5' : 'top-5'
+			showDate ? 'top-5' : 'top-4'
 		)}
 	></div>
 	<div class="flex flex-col gap-2 w-full">
