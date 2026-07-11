@@ -27,7 +27,4 @@
 			</div>
 		{/each}
 	</div>
-	<form method="POST" action="?/test">
-		<button type="submit">Submit</button>
-	</form>
 </div>
