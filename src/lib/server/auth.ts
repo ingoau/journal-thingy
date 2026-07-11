@@ -4,8 +4,10 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { sveltekitCookies } from 'better-auth/svelte-kit';
 import { getRequestEvent } from '$app/server';
 import { db } from '$lib/server/db';
+import { entry } from '$lib/server/db/schema';
 import { emailOTP } from 'better-auth/plugins';
 import { sendOTPEmail } from '$lib/server/emails/email-service';
+import { eq } from 'drizzle-orm';
 
 export const auth = betterAuth({
 	user: {
@@ -15,13 +17,19 @@ export const auth = betterAuth({
 				defaultValue: false,
 				input: true
 			}
+		},
+		deleteUser: {
+			enabled: true,
+			beforeDelete: async (user) => {
+				await db.delete(entry).where(eq(entry.userId, user.id));
+			}
 		}
 	},
 	baseURL: env.ORIGIN,
 	secret: env.BETTER_AUTH_SECRET,
 	database: drizzleAdapter(db, { provider: 'sqlite' }),
 	emailAndPassword: { enabled: true },
-	
+
 	plugins: [
 		emailOTP({
 			async sendVerificationOTP({ email, otp, type }) {
