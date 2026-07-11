@@ -38,7 +38,7 @@
 	</div>
 {/snippet}
 
-<div class="relative rounded-md p-2 transition-colors hover:bg-muted/50">
+<div class="relative rounded-xl p-2">
 	<div
 		class={cn(
 			'absolute -left-4 size-2 bg-secondary-foreground rounded-full -translate-x-5/12',
@@ -54,7 +54,7 @@
 		{/if}
 		<div class={cn('flex gap-3', showDate ? 'flex-col' : 'items-start justify-between')}>
 			<div class={cn('flex flex-col', showDate ? 'gap-2' : 'gap-1 min-w-0')}>
-				<div class="font-heading p-1">{entry.content}</div>
+				<div class="font-heading">{entry.content}</div>
 				<p class="text-sm text-muted-foreground">{timeString}</p>
 			</div>
 			{#if !showDate}
