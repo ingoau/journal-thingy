@@ -69,6 +69,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Settings</title>
+</svelte:head>
+
 <div class="mx-auto w-full max-w-3xl space-y-10 p-6">
 	<div>
 		<h1 class="font-heading text-3xl">Settings</h1>
