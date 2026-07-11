@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { IconStar, IconStarFilled } from '@tabler/icons-svelte';
 	import { DateTime } from 'luxon';
 	import { cn } from '$lib/utils';
 
@@ -10,7 +9,6 @@
 		entry: {
 			createdAt: string | Date;
 			content: string;
-			score: number | null;
 		};
 		showDate?: boolean;
 	} = $props();
@@ -18,7 +16,6 @@
 	const createdAt = $derived(DateTime.fromJSDate(new Date(entry.createdAt)));
 	const dateString = $derived(createdAt.toFormat('d MMM yyyy'));
 	const timeString = $derived(createdAt.toFormat('h:mm a'));
-	const moodScore = $derived(entry.score || 0);
 
 	let editing = $state(false);
 	let clickCoords = $state<{ x: number; y: number } | null>(null);
