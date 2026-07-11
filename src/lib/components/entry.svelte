@@ -18,7 +18,8 @@
 	const dateString = $derived(createdAt.toFormat('d MMM yyyy'));
 	const timeString = $derived(createdAt.toFormat('h:mm a'));
 
-	let content = $state(entry.content);
+	let contentOverride = $state<string | null>(null);
+	const content = $derived(contentOverride ?? entry.content);
 	let editing = $state(false);
 	let clickCoords = $state<{ x: number; y: number } | null>(null);
 
@@ -33,7 +34,7 @@
 	}
 
 	function handleSave(html: string) {
-		content = html;
+		contentOverride = html;
 	}
 </script>
 
@@ -64,13 +65,14 @@
 							/>
 						{/await}
 					{:else}
-						<button
-							type="button"
+						<div
+							role="button"
+							tabindex="0"
 							class="entry-content w-full cursor-text text-left"
 							onmousedown={startEditing}
 						>
 							{@html content}
-						</button>
+						</div>
 					{/if}
 				</div>
 				<p class="text-sm text-muted-foreground">{timeString}</p>
@@ -82,6 +84,10 @@
 <style>
 	.entry-content {
 		outline: none;
+	}
+
+	:global(.entry-content p:empty::before) {
+		content: '\00a0';
 	}
 
 	:global(.entry-content h1) {
