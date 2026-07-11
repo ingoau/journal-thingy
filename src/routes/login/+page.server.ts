@@ -3,7 +3,7 @@ import { redirect } from "@sveltejs/kit";
 
 export const load: PageServerLoad = async ({locals}) => {
     if (locals.user) {
-        redirect(303, '/home');
+        redirect(303, '/');
     }
     return {
         user: locals.user
