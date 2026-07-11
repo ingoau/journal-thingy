@@ -4,7 +4,13 @@
 	import { cn } from '$lib/utils';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { IconTrash, IconPhoto, IconLocation, IconDotsVertical } from '@tabler/icons-svelte';
+	import {
+		IconTrash,
+		IconPhoto,
+		IconLocation,
+		IconDotsVertical,
+		IconX
+	} from '@tabler/icons-svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { createUploadThing } from '$lib/utils/uploadthing';
 	import type { entry as entryTable } from '$lib/server/db/schema';
@@ -57,6 +63,14 @@
 		input.value = '';
 		await startUpload([file]);
 	}
+
+	async function removeImage(url: string) {
+		const body = new FormData();
+		body.set('id', entry.id);
+		body.set('url', url);
+		await fetch('?/removeAttachment', { method: 'POST', body });
+		await invalidateAll();
+	}
 </script>
 
 <div class="relative rounded-xl p-2">
@@ -80,7 +94,18 @@
 					<div class="flex overflow-x-auto gap-2 rounded-lg overflow-hidden">
 						{#each entry.attachments as attachment, index (`${attachment.type}-${index}`)}
 							{#if attachment.type === 'image'}
-								<img src={attachment.url} alt="" class="max-h-48 rounded-lg object-cover" />
+								<div class="group relative shrink-0">
+									<img src={attachment.url} alt="" class="max-h-48 rounded-lg object-cover" />
+									<Button
+										variant="secondary"
+										size="icon"
+										class="absolute top-1 right-1 size-7 opacity-0 transition-opacity group-hover:opacity-100"
+										onclick={() => removeImage(attachment.url)}
+									>
+										<IconX class="size-4" />
+										<span class="sr-only">Remove image</span>
+									</Button>
+								</div>
 							{/if}
 						{/each}
 					</div>
