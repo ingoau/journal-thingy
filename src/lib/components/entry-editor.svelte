@@ -27,15 +27,24 @@
 			content,
 			onBlur: async () => {
 				const html = editor?.getHTML();
-				if (html != null) {
-					if (html !== content) {
-						const body = new FormData();
-						body.set('id', id);
-						body.set('content', html);
-						await fetch('?/update', { method: 'POST', body });
-					}
-					onsave?.(html);
+				if (html == null) {
+					onclose?.();
+					return;
 				}
+
+				if (html !== content) {
+					const body = new FormData();
+					body.set('id', id);
+					body.set('content', html);
+					const response = await fetch('?/update', { method: 'POST', body });
+
+					if (!response.ok) {
+						// Keep the editor open when the server rejects the save (e.g. 401/403).
+						return;
+					}
+				}
+
+				onsave?.(html);
 				onclose?.();
 			}
 		});
