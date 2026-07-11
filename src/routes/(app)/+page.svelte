@@ -6,11 +6,7 @@
 
 	const { data } = $props();
 
-	const entries = $derived(
-		[...data.entries].sort(
-			(a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-		)
-	);
+	const entries = $derived(data.entries);
 
 	const createShowDate = $derived(
 		entries.length === 0 || dayKey(new Date()) !== dayKey(entries[0].createdAt)

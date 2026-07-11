@@ -10,7 +10,8 @@ export const load: PageServerLoad = async ({locals}) => {
         redirect(303, '/login');
     }
     const entries = await db.query.entry.findMany({
-        where: eq(entry.userId, locals.user.id)
+        where: eq(entry.userId, locals.user.id),
+        orderBy: (entries, {asc}) => [asc(entries.createdAt)]
     });
     return {
         entries,
