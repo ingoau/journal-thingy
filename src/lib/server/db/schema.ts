@@ -11,12 +11,16 @@ export const entry = sqliteTable(
 		userId: text('user_id')
 			.notNull()
 			.references(() => user.id, { onDelete: 'cascade' }),
-		date: integer({ mode: 'timestamp' }).notNull(),
 		content: text('content').notNull(),
 		attachments: text({ mode: 'json' }),
-    score: integer(),
-    createdAt: integer({ mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: integer({ mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+		score: integer(),
+		createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+			.notNull()
+			.$defaultFn(() => new Date()),
+		updatedAt: integer('updatedAt', { mode: 'timestamp_ms' })
+			.notNull()
+			.$defaultFn(() => new Date())
+			.$onUpdate(() => new Date()),
 	},
 	(table) => [check('score', sql`${table.score} BETWEEN 0 AND 5`)]
 );

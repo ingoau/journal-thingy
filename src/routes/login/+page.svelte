@@ -1,59 +1,64 @@
 <script lang="ts">
-    import * as Card from "$lib/components/ui/card/index.js";
-    import { Button } from "$lib/components/ui/button/index.js";
-    import * as InputOTP from "$lib/components/ui/input-otp/index.js";
-    import { Input } from "$lib/components/ui/input";
+	import * as Card from '$lib/components/ui/card/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import * as InputOTP from '$lib/components/ui/input-otp/index.js';
+	import { Input } from '$lib/components/ui/input';
 
-    import { authClient } from "$lib/auth-client";
+	import { authClient } from '$lib/auth-client';
 
-    let step: "email" | "otp" = $state("email");
+  import { goto } from '$app/navigation'
 
-    let email = $state("");
-    let otp = $state("");
-    let loading = $state(false);
-    let error = $state("");
+	let step: 'email' | 'otp' = $state('email');
 
-    async function submitEmail(event: { preventDefault: () => void; }) {
-        event.preventDefault();
-        loading = true;
-        error = "";
+	let email = $state('');
+	let otp = $state('');
+	let loading = $state(false);
+	let error = $state('');
 
-        const { error: err } =
-          await authClient.emailOtp.sendVerificationOtp({
-              email,
-              type: "sign-in"
-          })
+	async function submitEmail(event: { preventDefault: () => void }) {
+		event.preventDefault();
+		loading = true;
+		error = '';
 
-        if (err) {
-            error = err.message!;
-            loading = false;
-            return;
-        }
+		const { error: err } = await authClient.emailOtp.sendVerificationOtp({
+			email,
+			type: 'sign-in'
+		});
 
-        step = 'otp'
-        loading = false;
-    }
+		if (err) {
+			error = err.message!;
+			loading = false;
+			return;
+		}
 
-    async function submitOtp(event: { preventDefault: () => void; }) {
-        event.preventDefault();
+		step = 'otp';
+		loading = false;
+	}
 
-        loading = true;
-        error = "";
+	async function submitOtp(eventOrCode?: SubmitEvent | string) {
+		if (typeof eventOrCode !== 'string') {
+			eventOrCode?.preventDefault();
+		}
 
-        const { error: err } =
-            await authClient.signIn.emailOtp({
-                email,
-                otp
-            });
+		const code = typeof eventOrCode === 'string' ? eventOrCode : otp;
+		if (loading || code.length !== 6) return;
 
-        if (err) {
-            error = err.message!;
-            loading = false;
-            return;
-        }
+		loading = true;
+		error = '';
 
-        console.log("logged in yayay") // TODO
-    }
+		const { error: err } = await authClient.signIn.emailOtp({
+			email,
+			otp: code
+		});
+
+		if (err) {
+			error = err.message!;
+			loading = false;
+			return;
+		}
+
+		await goto("/")
+	}
 </script>
 
 <div class="flex min-h-screen items-center justify-center">
@@ -61,13 +66,11 @@
         <Card.Header>
             <Card.Title>Login</Card.Title>
             <Card.Description>{step === "email" ? "Enter your email below to be emailed a sign-in code." : "Enter the 6-digit code we sent to your email."}</Card.Description>
-            <Card.Action>
-                {#if step === 'email'}
-                    <Button variant="link">No account? Sign Up!</Button>
-                {:else if step === 'otp'}
-                    <Button variant="link" onclick={() => {step = "email"; otp = "";}}>Not you? Go back.</Button>
-                {/if}
-            </Card.Action>
+            {#if step === 'otp'}
+                <Card.Action>
+                        <Button variant="link" onclick={() => {step = "email"; otp = "";}}>Not you? Go back.</Button>
+                </Card.Action>
+            {/if}
         </Card.Header>
         <Card.Content>
             {#if step === 'email'}
