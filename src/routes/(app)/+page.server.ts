@@ -11,7 +11,7 @@ export const load: PageServerLoad = async ({locals}) => {
     }
     const entries = await db.query.entry.findMany({
         where: eq(entry.userId, locals.user.id),
-        orderBy: (entries, {asc}) => [asc(entries.createdAt)]
+        orderBy: (entries, {desc}) => [desc(entries.createdAt)]
     });
     return {
         entries,
