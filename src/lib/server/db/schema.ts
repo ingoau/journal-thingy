@@ -2,6 +2,15 @@ import { integer, sqliteTable, text, check } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 import { user } from './auth.schema';
 
+type Attachment = {
+	type: 'image';
+	url: string;
+} | {
+	type: 'location';
+	latitude: number;
+	longitude: number;
+};
+
 export const entry = sqliteTable(
 	'entry',
 	{
@@ -12,7 +21,7 @@ export const entry = sqliteTable(
 			.notNull()
 			.references(() => user.id, { onDelete: 'cascade' }),
 		content: text('content').notNull(),
-		attachments: text({ mode: 'json' }),
+		attachments: text({ mode: 'json' }).$type<Attachment[]>(),
 		score: integer(),
 		createdAt: integer('createdAt', { mode: 'timestamp_ms' })
 			.notNull()
