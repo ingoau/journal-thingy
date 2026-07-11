@@ -64,5 +64,63 @@ export const actions = {
 			await db
 				.delete(entry)
 				.where(and(eq(entry.id, String(data.get('id'))), eq(entry.userId, locals.user.id)));
+	},
+	addAttachment: async ({ request, locals }) => {
+		if (!locals.user) {
+			error(401, 'Unauthorized');
+		}
+
+		const data = await request.formData();
+		const id = String(data.get('id'));
+		const url = String(data.get('url'));
+
+		if (!id || !url) {
+			error(400, 'Missing attachment data');
+		}
+
+		const existing = await db.query.entry.findFirst({
+			where: and(eq(entry.id, id), eq(entry.userId, locals.user.id))
+		});
+
+		if (!existing) {
+			error(404, 'Entry not found');
+		}
+
+		const attachments = [...(existing.attachments ?? []), { type: 'image' as const, url }];
+
+		await db
+			.update(entry)
+			.set({ attachments })
+			.where(and(eq(entry.id, id), eq(entry.userId, locals.user.id)));
+	},
+	removeAttachment: async ({ request, locals }) => {
+		if (!locals.user) {
+			error(401, 'Unauthorized');
+		}
+
+		const data = await request.formData();
+		const id = String(data.get('id'));
+		const url = String(data.get('url'));
+
+		if (!id || !url) {
+			error(400, 'Missing attachment data');
+		}
+
+		const existing = await db.query.entry.findFirst({
+			where: and(eq(entry.id, id), eq(entry.userId, locals.user.id))
+		});
+
+		if (!existing) {
+			error(404, 'Entry not found');
+		}
+
+		const attachments = (existing.attachments ?? []).filter(
+			(attachment) => !(attachment.type === 'image' && attachment.url === url)
+		);
+
+		await db
+			.update(entry)
+			.set({ attachments: attachments.length > 0 ? attachments : null })
+			.where(and(eq(entry.id, id), eq(entry.userId, locals.user.id)));
 	}
 } satisfies Actions;
