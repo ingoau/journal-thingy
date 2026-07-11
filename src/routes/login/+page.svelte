@@ -61,13 +61,6 @@
         <Card.Header>
             <Card.Title>Login</Card.Title>
             <Card.Description>{step === "email" ? "Enter your email below to be emailed a sign-in code." : "Enter the 6-digit code we sent to your email."}</Card.Description>
-            <Card.Action>
-                {#if step === 'email'}
-                    <Button variant="link">No account? Sign Up!</Button>
-                {:else if step === 'otp'}
-                    <Button variant="link" onclick={() => {step = "email"; otp = "";}}>Not you? Go back.</Button>
-                {/if}
-            </Card.Action>
         </Card.Header>
         <Card.Content>
             {#if step === 'email'}
