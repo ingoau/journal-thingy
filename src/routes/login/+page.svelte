@@ -63,6 +63,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Login</title>
+</svelte:head>
+
 <div class="flex min-h-screen items-center justify-center">
     <div class="relative w-full max-w-md h-80">
         {#if step === 'email'}
