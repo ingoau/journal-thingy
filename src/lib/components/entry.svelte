@@ -34,18 +34,6 @@
 	}
 </script>
 
-{#snippet stars(className?: string)}
-	<div class={cn('flex flex-row gap-1', className)}>
-		{#each Array(5), index (index)}
-			{#if index < moodScore}
-				<IconStarFilled stroke={2} />
-			{:else}
-				<IconStar stroke={2} />
-			{/if}
-		{/each}
-	</div>
-{/snippet}
-
 <div class="relative rounded-xl p-2">
 	<div
 		class={cn(
@@ -55,13 +43,10 @@
 	></div>
 	<div class="flex flex-col gap-2 w-full">
 		{#if showDate}
-			<div class="flex items-center justify-between">
-				<h2 class="text-2xl font-heading">{dateString}</h2>
-				{@render stars()}
-			</div>
+			<h2 class="text-2xl font-heading">{dateString}</h2>
 		{/if}
-		<div class={cn('flex gap-3', showDate ? 'flex-col' : 'items-start justify-between')}>
-			<div class={cn('flex flex-col', showDate ? 'gap-2' : 'gap-1 min-w-0')}>
+		<div class="flex gap-3 flex-col">
+			<div class="flex flex-col gap-2">
 				<div class="relative font-heading">
 					{#if editing}
 						{#await import('./entry-editor.svelte')}
@@ -81,9 +66,6 @@
 				</div>
 				<p class="text-sm text-muted-foreground">{timeString}</p>
 			</div>
-			{#if !showDate}
-				{@render stars('shrink-0 pt-1')}
-			{/if}
 		</div>
 	</div>
 </div>
