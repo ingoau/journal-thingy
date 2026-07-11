@@ -59,7 +59,7 @@
 
 <div
 	class={cn(
-		'top-0 left-0 p-8 fixed h-full flex flex-col gap-4 w-sm overflow-hidden duration-200 bg-background z-10',
+		'top-0 left-0 p-8 fixed h-full flex flex-col gap-4 w-sm overflow-hidden duration-200 bg-background z-10 shadow-2xl xl:shadow-none',
 		!isOpen && '-translate-x-full'
 	)}
 >
