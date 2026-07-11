@@ -18,6 +18,31 @@ To recreate this project with the same configuration:
 bun x sv@0.16.2 create --template minimal --types ts --add prettier eslint tailwindcss="plugins:none" drizzle="database:sqlite+sqlite:libsql" better-auth="demo:password" --install bun ./
 ```
 
+## Configuration
+
+### Environment Variables
+
+Copy `.env.example` to `.env` and configure the following:
+
+```sh
+cp .env.example .env
+```
+
+#### Required Variables
+
+- `DATABASE_URL`: SQLite database file path
+- `ORIGIN`: Your application URL (e.g., `http://localhost:5173`)
+- `BETTER_AUTH_SECRET`: 32+ character secret for auth (generate with high entropy)
+
+#### Email Configuration (Optional)
+
+For sending OTP emails, configure Resend:
+
+- `RESEND_API_KEY`: Get from [resend.com/api-keys](https://resend.com/api-keys)
+- `EMAIL_FROM`: Verified sender email (use `onboarding@resend.dev` for testing)
+
+**Note:** If `RESEND_API_KEY` is not set, OTP codes will be logged to the console for development.
+
 ## Developing
 
 Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
