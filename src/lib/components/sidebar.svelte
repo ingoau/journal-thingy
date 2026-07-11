@@ -32,7 +32,7 @@
 	</a>
 {/snippet}
 
-<div class="top-0 left-0 p-8 fixed h-full flex flex-col gap-4 max-w-sm overflow-hidden">
+<div class="top-0 left-0 p-8 fixed h-full flex flex-col gap-4 w-sm overflow-hidden">
 	<IconBook2 size={32} />
 	{#each items as item, index (index)}
 		{@render navLink(item.href, item.name)}
