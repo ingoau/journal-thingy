@@ -23,7 +23,8 @@
 			const body = new FormData();
 			body.set('id', entry.id);
 			body.set('url', file.ufsUrl);
-			await fetch('?/addAttachment', { method: 'POST', body });
+			const response = await fetch('?/addAttachment', { method: 'POST', body });
+			if (!response.ok) return;
 			await invalidateAll();
 		}
 	});
@@ -44,11 +45,12 @@
 	const dateString = $derived(createdAt.toFormat('d MMM yyyy'));
 	const timeString = $derived(createdAt.toFormat('h:mm a'));
 
-	function deleteItem(id: string) {
+	async function deleteItem(id: string) {
 		const body = new FormData();
 		body.set('id', id);
-		fetch('?/delete', { method: 'POST', body });
-		invalidateAll();
+		const response = await fetch('?/delete', { method: 'POST', body });
+		if (!response.ok) return;
+		await invalidateAll();
 	}
 
 	function pickPhotos() {
@@ -68,7 +70,8 @@
 		const body = new FormData();
 		body.set('id', entry.id);
 		body.set('url', url);
-		await fetch('?/removeAttachment', { method: 'POST', body });
+		const response = await fetch('?/removeAttachment', { method: 'POST', body });
+		if (!response.ok) return;
 		await invalidateAll();
 	}
 </script>
