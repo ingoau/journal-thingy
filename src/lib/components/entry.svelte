@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { onMount, onDestroy } from 'svelte';
+	import { Editor } from '@tiptap/core';
+	import { StarterKit } from '@tiptap/starter-kit';
 	import { IconStar, IconStarFilled } from '@tabler/icons-svelte';
 	import { DateTime } from 'luxon';
 	import { cn } from '$lib/utils';
@@ -20,7 +23,20 @@
 	const timeString = $derived(createdAt.toFormat('h:mm a'));
 	const moodScore = $derived(entry.score || 0);
 
-	let score = $state(entry.score || 0);
+	let element = $state<HTMLDivElement>();
+	let editor: Editor | null = null;
+
+	onMount(() => {
+		editor = new Editor({
+			element,
+			extensions: [StarterKit],
+			content: entry.content
+		});
+	});
+
+	onDestroy(() => {
+		editor?.destroy();
+	});
 </script>
 
 {#snippet stars(className?: string)}
@@ -51,7 +67,9 @@
 		{/if}
 		<div class={cn('flex gap-3', showDate ? 'flex-col' : 'items-start justify-between')}>
 			<div class={cn('flex flex-col', showDate ? 'gap-2' : 'gap-1 min-w-0')}>
-				<div class="font-heading">{entry.content}</div>
+				<div class="relative font-heading">
+					<div bind:this={element}></div>
+				</div>
 				<p class="text-sm text-muted-foreground">{timeString}</p>
 			</div>
 			{#if !showDate}
@@ -60,3 +78,25 @@
 		</div>
 	</div>
 </div>
+
+<style>
+	:global(.ProseMirror) {
+		outline: none;
+	}
+
+	:global(.ProseMirror h1) {
+		font-size: 1.5rem;
+		font-weight: 600;
+		line-height: 1.3;
+	}
+
+	:global(.ProseMirror h2) {
+		font-size: 1.25rem;
+		font-weight: 600;
+		line-height: 1.3;
+	}
+
+	:global(.ProseMirror p + p) {
+		margin-top: 0.5rem;
+	}
+</style>
