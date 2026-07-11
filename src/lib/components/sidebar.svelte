@@ -12,28 +12,24 @@
 	];
 </script>
 
-<div class="top-0 left-0 p-6 fixed h-full flex flex-col gap-2">
-	{#each items as item, index (index)}
-		<a
-			href={item.href}
-			class={cn(
-				'font-heading text-2xl hover:text-foreground text-muted-foreground',
-				item.href === page.url.pathname && 'text-foreground'
-			)}
-		>
-			{item.name}
-		</a>
-	{/each}
-	<div class="grow"></div>
+{#snippet navLink(href: string, name: string)}
 	<a
-		href="/settings"
+		{href}
 		class={cn(
 			'font-heading text-2xl hover:text-foreground text-muted-foreground',
-			page.url.pathname === '/settings' && 'text-foreground'
+			href === page.url.pathname && 'text-foreground'
 		)}
 	>
-		Settings
+		{name}
 	</a>
+{/snippet}
+
+<div class="top-0 left-0 p-6 fixed h-full flex flex-col gap-2">
+	{#each items as item, index (index)}
+		{@render navLink(item.href, item.name)}
+	{/each}
+	<div class="grow"></div>
+	{@render navLink('/settings', 'Settings')}
 	<div class="font-heading text-2xl text-foreground flex flex-row items-center gap-2">
 		{user.name || user.email}
 		<IconChevronUp stroke={2} />
