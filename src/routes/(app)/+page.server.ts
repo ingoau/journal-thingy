@@ -40,5 +40,14 @@ export const actions = {
             .where(
                 and(eq(entry.id, String(data.get('id'))), eq(entry.userId, locals.user.id))
             );
-    }
+    },
+	delete: async ({ request, locals }) => {
+			if (!locals.user) {
+				error(401, 'Unauthorized');
+			}
+		const data = await request.formData();
+			await db
+				.delete(entry)
+				.where(and(eq(entry.id, String(data.get('id'))), eq(entry.userId, locals.user.id)));
+	}
 } satisfies Actions;
