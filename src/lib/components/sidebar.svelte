@@ -3,6 +3,8 @@
 	import { IconBook2, IconChevronUp, IconLogout } from '@tabler/icons-svelte';
 	import { cn } from '$lib/utils';
 	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
+	import { authClient } from '$lib/auth-client';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 
 	let { user }: { user: User } = $props();
@@ -11,6 +13,11 @@
 		{ name: 'Timeline', href: '/' },
 		{ name: 'Calender', href: '/calender' }
 	];
+
+	async function logout() {
+		await authClient.signOut();
+		await goto('/login');
+	}
 </script>
 
 {#snippet navLink(href: string, name: string)}
@@ -40,7 +47,7 @@
 			<IconChevronUp stroke={2} />
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Content>
-			<DropdownMenu.Item>
+			<DropdownMenu.Item onclick={logout}>
 				<IconLogout stroke={2} />
 				Logout
 			</DropdownMenu.Item>
