@@ -1,33 +1,49 @@
 <script lang="ts">
-    import {IconChevronUp, IconMoon, IconSun } from '@tabler/icons-svelte';
-      import { Toggle } from "$lib/components/ui/toggle/index.js";
+	import type { User } from 'better-auth';
+	import { IconBook2, IconChevronUp, IconLogout } from '@tabler/icons-svelte';
+	import { cn } from '$lib/utils';
+	import { page } from '$app/state';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
+
+	let { user }: { user: User } = $props();
 
 	const items = [
 		{ name: 'Timeline', href: '/' },
-		{ name: 'Calender', href: '/' }
+		{ name: 'Calender', href: '/calender' }
 	];
+</script>
 
-    let darkMode = $state(false);
-    </script>
+{#snippet navLink(href: string, name: string)}
+	<a
+		{href}
+		class={cn(
+			'font-heading text-2xl hover:text-foreground text-muted-foreground active:scale-97 duration-200  origin-left',
+			href === page.url.pathname && 'text-foreground'
+		)}
+	>
+		{name}
+	</a>
+{/snippet}
 
-<div class="top-0 left-0 p-6 fixed h-full flex flex-col gap-2">
-    <Toggle bind:pressed={darkMode} class="data-[state=on]:bg-transparent hover:bg-transparent">
-        {#if darkMode}
-            <IconMoon stroke={2} />
-        {:else}
-            <IconSun stroke={2} />
-        {/if}
-    </Toggle>
+<div class="top-0 left-0 p-8 fixed h-full flex flex-col gap-4">
+	<IconBook2 size={32} />
 	{#each items as item, index (index)}
-		<a href={item.href} class="font-heading text-2xl hover:text-foreground text-muted-foreground">
-			{item.name}
-		</a>
+		{@render navLink(item.href, item.name)}
 	{/each}
 	<div class="grow"></div>
-	<a href="/" class="font-heading text-2xl hover:text-foreground text-muted-foreground">
-		Settings
-	</a>
-	<div class="font-heading text-2xl text-foreground flex flex-row items-center gap-2">
-		willgob <IconChevronUp stroke={2} />
-	</div>
+	{@render navLink('/settings', 'Settings')}
+	<DropdownMenu.Root>
+		<DropdownMenu.Trigger
+			class="font-heading text-2xl text-foreground flex flex-row items-center gap-2"
+		>
+			{user.name || user.email}
+			<IconChevronUp stroke={2} />
+		</DropdownMenu.Trigger>
+		<DropdownMenu.Content>
+			<DropdownMenu.Item>
+				<IconLogout stroke={2} />
+				Logout
+			</DropdownMenu.Item>
+		</DropdownMenu.Content>
+	</DropdownMenu.Root>
 </div>

@@ -1,59 +1,62 @@
 <script lang="ts">
-    import * as Card from "$lib/components/ui/card/index.js";
-    import { Button } from "$lib/components/ui/button/index.js";
-    import * as InputOTP from "$lib/components/ui/input-otp/index.js";
-    import { Input } from "$lib/components/ui/input";
+	import * as Card from '$lib/components/ui/card/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import * as InputOTP from '$lib/components/ui/input-otp/index.js';
+	import { Input } from '$lib/components/ui/input';
 
-    import { authClient } from "$lib/auth-client";
+	import { authClient } from '$lib/auth-client';
 
-    let step: "email" | "otp" = $state("email");
+	let step: 'email' | 'otp' = $state('email');
 
-    let email = $state("");
-    let otp = $state("");
-    let loading = $state(false);
-    let error = $state("");
+	let email = $state('');
+	let otp = $state('');
+	let loading = $state(false);
+	let error = $state('');
 
-    async function submitEmail(event: { preventDefault: () => void; }) {
-        event.preventDefault();
-        loading = true;
-        error = "";
+	async function submitEmail(event: { preventDefault: () => void }) {
+		event.preventDefault();
+		loading = true;
+		error = '';
 
-        const { error: err } =
-          await authClient.emailOtp.sendVerificationOtp({
-              email,
-              type: "sign-in"
-          })
+		const { error: err } = await authClient.emailOtp.sendVerificationOtp({
+			email,
+			type: 'sign-in'
+		});
 
-        if (err) {
-            error = err.message!;
-            loading = false;
-            return;
-        }
+		if (err) {
+			error = err.message!;
+			loading = false;
+			return;
+		}
 
-        step = 'otp'
-        loading = false;
-    }
+		step = 'otp';
+		loading = false;
+	}
 
-    async function submitOtp(event: { preventDefault: () => void; }) {
-        event.preventDefault();
+	async function submitOtp(eventOrCode?: SubmitEvent | string) {
+		if (typeof eventOrCode !== 'string') {
+			eventOrCode?.preventDefault();
+		}
 
-        loading = true;
-        error = "";
+		const code = typeof eventOrCode === 'string' ? eventOrCode : otp;
+		if (loading || code.length !== 6) return;
 
-        const { error: err } =
-            await authClient.signIn.emailOtp({
-                email,
-                otp
-            });
+		loading = true;
+		error = '';
 
-        if (err) {
-            error = err.message!;
-            loading = false;
-            return;
-        }
+		const { error: err } = await authClient.signIn.emailOtp({
+			email,
+			otp: code
+		});
 
-        console.log("logged in yayay") // TODO
-    }
+		if (err) {
+			error = err.message!;
+			loading = false;
+			return;
+		}
+
+		console.log('logged in yayay'); // TODO
+	}
 </script>
 
 <div class="flex min-h-screen items-center justify-center">
