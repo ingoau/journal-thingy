@@ -74,7 +74,7 @@
                 <Card.Root class="w-full max-w-md">
                     <Card.Header>
                         <Card.Title>Login</Card.Title>
-                        <Card.Description>"Enter your email below to be emailed a sign-in code."</Card.Description>
+                        <Card.Description>Enter your email below to be emailed a sign-in code.</Card.Description>
                     </Card.Header>
                     <Card.Content>
                         <form onsubmit={submitEmail} class="space-y-4">
@@ -106,7 +106,7 @@
                 <Card.Root class="w-full max-w-md">
                     <Card.Header>
                         <Card.Title>Login</Card.Title>
-                        <Card.Description>"Enter the 6-digit code we sent to your email."</Card.Description>
+                        <Card.Description>Enter the 6-digit code we sent to your email.</Card.Description>
                         <Card.Action>
                             <Button variant="link" onclick={() => {step = "email"; otp = "";}}>Not you? Go back.</Button>
                         </Card.Action>
