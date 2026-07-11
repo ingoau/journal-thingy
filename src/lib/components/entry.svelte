@@ -6,18 +6,33 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { IconTrash, IconPhoto, IconLocation, IconDotsVertical } from '@tabler/icons-svelte';
 	import { invalidateAll } from '$app/navigation';
+	import { createUploadThing } from '$lib/utils/uploadthing';
+	import type { entry as entryTable } from '$lib/server/db/schema';
+
+	const { startUpload, isUploading } = createUploadThing('imageUploader', {
+		onClientUploadComplete: async (res) => {
+			const file = res[0];
+			if (!file) return;
+
+			const body = new FormData();
+			body.set('id', entry.id);
+			body.set('url', file.ufsUrl);
+			await fetch('?/addAttachment', { method: 'POST', body });
+			await invalidateAll();
+		}
+	});
 
 	const {
 		entry,
 		showDate = true
 	}: {
-		entry: {
-			id: string;
-			createdAt: string | Date;
-			content: string;
+		entry: Pick<typeof entryTable.$inferSelect, 'id' | 'createdAt' | 'content'> & {
+			attachments?: typeof entryTable.$inferSelect.attachments;
 		};
 		showDate?: boolean;
 	} = $props();
+
+	let fileInput = $state<HTMLInputElement>();
 
 	const createdAt = $derived(DateTime.fromJSDate(new Date(entry.createdAt)));
 	const dateString = $derived(createdAt.toFormat('d MMM yyyy'));
@@ -28,6 +43,19 @@
 		body.set('id', id);
 		fetch('?/delete', { method: 'POST', body });
 		invalidateAll();
+	}
+
+	function pickPhotos() {
+		fileInput?.click();
+	}
+
+	async function handleFileSelect(event: Event) {
+		const input = event.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file) return;
+
+		input.value = '';
+		await startUpload([file]);
 	}
 </script>
 
@@ -48,11 +76,31 @@
 					<EntryEditor id={entry.id} content={entry.content} placeholder="Write something..." />
 				</div>
 				<p class="text-sm text-muted-foreground">{timeString}</p>
+				{#if entry.attachments?.length}
+					<div class="flex flex-wrap gap-2">
+						{#each entry.attachments as attachment, index (`${attachment.type}-${index}`)}
+							{#if attachment.type === 'image'}
+								<img
+									src={attachment.url}
+									alt=""
+									class="max-h-48 rounded-lg object-cover"
+								/>
+							{/if}
+						{/each}
+					</div>
+				{/if}
 				{#if entry.id !== 'new'}
+					<input
+						bind:this={fileInput}
+						type="file"
+						accept="image/*"
+						class="hidden"
+						onchange={handleFileSelect}
+					/>
 					<div class="flex flex-row gap-2">
-						<Button variant="secondary">
+						<Button variant="secondary" onclick={pickPhotos} disabled={$isUploading}>
 							<IconPhoto />
-							Add Photos
+							{$isUploading ? 'Uploading...' : 'Add Photos'}
 						</Button>
 						<Button variant="secondary">
 							<IconLocation />
