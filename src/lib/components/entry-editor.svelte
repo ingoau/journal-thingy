@@ -1,21 +1,18 @@
 <script lang="ts">
-	import { onMount, onDestroy, tick } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { Editor } from '@tiptap/core';
+	import Placeholder from '@tiptap/extension-placeholder';
 	import { StarterKit } from '@tiptap/starter-kit';
 
 	const {
 		id,
 		content,
-		clickCoords = null,
-		onsave,
-		onclose
+		placeholder
 	}: {
 		id: string;
 		content: string;
-		clickCoords?: { x: number; y: number } | null;
-		onsave?: (html: string) => void;
-		onclose?: () => void;
+		placeholder?: string;
 	} = $props();
 
 	let element = $state<HTMLDivElement>();
@@ -24,51 +21,28 @@
 	onMount(() => {
 		editor = new Editor({
 			element,
-			extensions: [StarterKit],
+			extensions: [StarterKit, ...(placeholder ? [Placeholder.configure({ placeholder })] : [])],
 			content,
 			onBlur: async () => {
 				const html = editor?.getHTML();
-				if (html != null) {
-					const isEmpty = html === '<p></p>' || html.trim() === '';
-					if (id === 'new') {
-						if (!isEmpty) {
-							const body = new FormData();
-							body.set('content', html);
-							await fetch('?/create', { method: 'POST', body });
-							await invalidateAll();
-						}
-					} else if (html !== content) {
+				if (html == null) return;
+				const isEmpty = html === '<p></p>' || html.trim() === '';
+				if (id === 'new') {
+					if (!isEmpty) {
 						const body = new FormData();
-						body.set('id', id);
 						body.set('content', html);
-						await fetch('?/update', { method: 'POST', body });
-						onsave?.(html);
+						await fetch('?/create', { method: 'POST', body });
+						await invalidateAll();
 					}
+					editor?.commands.clearContent();
+				} else if (html !== content) {
+					const body = new FormData();
+					body.set('id', id);
+					body.set('content', html);
+					await fetch('?/update', { method: 'POST', body });
 				}
-				onclose?.();
 			}
 		});
-
-		void (async () => {
-			await tick();
-
-			requestAnimationFrame(() => {
-				if (!editor) return;
-
-				if (clickCoords) {
-					const pos = editor.view.posAtCoords({
-						left: clickCoords.x,
-						top: clickCoords.y
-					});
-
-					if (pos) {
-						editor.commands.setTextSelection(pos.pos);
-					}
-				}
-
-				editor.commands.focus();
-			});
-		})();
 	});
 
 	onDestroy(() => {
@@ -76,7 +50,7 @@
 	});
 </script>
 
-<div bind:this={element} class="entry-content"></div>
+<div bind:this={element} class="entry-content w-full"></div>
 
 <style>
 	:global(.entry-content .ProseMirror) {
@@ -97,5 +71,14 @@
 
 	:global(.entry-content .ProseMirror p + p) {
 		margin-top: 0.5rem;
+	}
+
+	:global(.entry-content .ProseMirror p.is-editor-empty:first-child::before),
+	:global(.entry-content .ProseMirror p.is-empty::before) {
+		content: attr(data-placeholder);
+		float: left;
+		height: 0;
+		pointer-events: none;
+		color: var(--muted-foreground);
 	}
 </style>
