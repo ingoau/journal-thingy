@@ -9,10 +9,13 @@
 		IconPhoto,
 		IconLocation,
 		IconDotsVertical,
-		IconX
+		IconX,
+		IconMoodSmile,
+		IconChevronDown
 	} from '@tabler/icons-svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { createUploadThing } from '$lib/utils/uploadthing';
+	import { MOODS, moodColor, type Mood } from '$lib/mood';
 	import type { entry as entryTable } from '$lib/server/db/schema';
 
 	const { startUpload, isUploading } = createUploadThing('imageUploader', {
@@ -33,7 +36,7 @@
 		entry,
 		showDate = true
 	}: {
-		entry: Pick<typeof entryTable.$inferSelect, 'id' | 'createdAt' | 'content'> & {
+		entry: Pick<typeof entryTable.$inferSelect, 'id' | 'createdAt' | 'content' | 'mood'> & {
 			attachments?: typeof entryTable.$inferSelect.attachments;
 		};
 		showDate?: boolean;
@@ -44,6 +47,18 @@
 	const createdAt = $derived(DateTime.fromJSDate(new Date(entry.createdAt)));
 	const dateString = $derived(createdAt.toFormat('d MMM yyyy'));
 	const timeString = $derived(createdAt.toFormat('h:mm a'));
+	const moodLabel = $derived(
+		entry.mood ? entry.mood.charAt(0).toUpperCase() + entry.mood.slice(1) : 'Mood'
+	);
+
+	async function updateMood(mood: Mood | null) {
+		const body = new FormData();
+		body.set('id', entry.id);
+		body.set('mood', mood ?? '');
+		const response = await fetch('?/setMood', { method: 'POST', body });
+		if (!response.ok) return;
+		await invalidateAll();
+	}
 
 	async function deleteItem(id: string) {
 		const body = new FormData();
@@ -130,6 +145,42 @@
 							<IconLocation />
 							Add Location
 						</Button>
+						<DropdownMenu.Root>
+							<DropdownMenu.Trigger>
+								{#snippet child({ props })}
+									<Button
+										{...props}
+										variant="secondary"
+										style={`background-color: ${moodColor(entry.mood)}30`}
+									>
+										<IconMoodSmile />
+										{moodLabel}
+										<IconChevronDown class="size-3.5 opacity-60" />
+									</Button>
+								{/snippet}
+							</DropdownMenu.Trigger>
+							<DropdownMenu.Content class="w-44">
+								<DropdownMenu.RadioGroup
+									value={entry.mood ?? ''}
+									onValueChange={(value) => updateMood((value as Mood) || null)}
+								>
+									{#each MOODS as mood (mood.value)}
+										<DropdownMenu.RadioItem
+											value={mood.value}
+											class="rounded"
+											style={`background-color: ${mood.color}30`}
+										>
+											{mood.value.charAt(0).toUpperCase() + mood.value.slice(1)}
+										</DropdownMenu.RadioItem>
+									{/each}
+								</DropdownMenu.RadioGroup>
+								{#if entry.mood}
+									<DropdownMenu.Separator />
+									<DropdownMenu.Item onSelect={() => updateMood(null)}>Clear mood</DropdownMenu.Item
+									>
+								{/if}
+							</DropdownMenu.Content>
+						</DropdownMenu.Root>
 						<div class="grow"></div>
 						<DropdownMenu.Root>
 							<DropdownMenu.Trigger>
