@@ -1,14 +1,22 @@
 <script lang="ts">
 	import type { User } from 'better-auth';
-	import { IconBook2, IconChevronRight, IconChevronUp, IconLogout } from '@tabler/icons-svelte';
+	import { IconBook2, IconChevronRight, IconChevronUp, IconLogout, IconX } from '@tabler/icons-svelte';
 	import { cn } from '$lib/utils';
 	import { page } from '$app/state';
-	import { goto } from '$app/navigation';
+	import { afterNavigate, goto } from '$app/navigation';
 	import { authClient } from '$lib/auth-client';
+	import { MediaQuery } from 'svelte/reactivity';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import Button from './ui/button/button.svelte';
+	import { fade } from 'svelte/transition';
 
-	let isOpen = $state(true);
+	const isDesktop = new MediaQuery('min-width: 1280px');
+
+	/** Mobile drawer starts closed; desktop panel starts open. */
+	let mobileOpen = $state(false);
+	let desktopOpen = $state(true);
+
+	let isOpen = $derived(isDesktop.current ? desktopOpen : mobileOpen);
 
 	let { user }: { user: User } = $props();
 
@@ -17,17 +25,51 @@
 		{ name: 'Calendar', href: '/calendar' }
 	];
 
+	$effect(() => {
+		if (typeof document === 'undefined') return;
+		const shouldLock = isOpen && !isDesktop.current;
+		document.body.style.overflow = shouldLock ? 'hidden' : '';
+		return () => {
+			document.body.style.overflow = '';
+		};
+	});
+
+	afterNavigate(() => {
+		mobileOpen = false;
+	});
+
+	function closeMobile() {
+		mobileOpen = false;
+	}
+
+	function toggle() {
+		if (isDesktop.current) {
+			desktopOpen = !desktopOpen;
+		} else {
+			mobileOpen = !mobileOpen;
+		}
+	}
+
+	function onWindowKeydown(event: KeyboardEvent) {
+		if (event.key === 'Escape' && mobileOpen) {
+			mobileOpen = false;
+		}
+	}
+
 	async function logout() {
 		await authClient.signOut();
 		await goto('/login');
 	}
 </script>
 
+<svelte:window onkeydown={onWindowKeydown} />
+
 {#snippet navLink(href: string, name: string)}
 	<a
 		{href}
+		onclick={closeMobile}
 		class={cn(
-			'font-heading text-2xl hover:text-foreground text-muted-foreground active:scale-97 duration-200  origin-left',
+			'font-heading origin-left text-2xl text-muted-foreground duration-200 hover:text-foreground active:scale-97',
 			href === page.url.pathname && 'text-foreground'
 		)}
 	>
@@ -35,35 +77,60 @@
 	</a>
 {/snippet}
 
+{#if mobileOpen}
+	<button
+		type="button"
+		class="fixed inset-0 z-10 bg-foreground/25 backdrop-blur-[1px]"
+		aria-label="Close navigation"
+		transition:fade={{ duration: 180 }}
+		onclick={closeMobile}
+	></button>
+{/if}
+
 <Button
 	variant="ghost"
 	size="icon"
 	class={cn(
-		'size-12 fixed group top-8 left-8 z-20 bg-background',
-		!isOpen && 'top-4 left-4 scale-75'
+		'group fixed top-4 left-4 z-30 size-11 bg-background/90 shadow-sm ring-1 ring-border/60 backdrop-blur-md transition-all duration-200 xl:top-8 xl:left-8 xl:size-12 xl:bg-background xl:shadow-none xl:ring-0 xl:backdrop-blur-none',
+		!isOpen && 'xl:top-4 xl:left-4 xl:scale-75'
 	)}
-	onclick={() => (isOpen = !isOpen)}
+	aria-expanded={isOpen}
+	aria-controls="app-sidebar"
+	aria-label={isOpen ? 'Close navigation' : 'Open navigation'}
+	onclick={toggle}
 >
-	<IconBook2
-		size={32}
-		class="absolute size-10 group-hover:opacity-25 group-hover:scale-90 duration-200"
-	/>
-	<IconChevronRight
-		size={32}
-		class={cn(
-			'absolute size-8 opacity-0 group-hover:opacity-100 group-hover:scale-95 duration-200 scale-x-100',
-			isOpen && '-scale-x-100'
-		)}
-	/>
+	{#if mobileOpen}
+		<IconX size={28} class="size-7" />
+	{:else}
+		<IconBook2
+			size={32}
+			class={cn(
+				'absolute size-9 duration-200 xl:size-10',
+				'xl:group-hover:scale-90 xl:group-hover:opacity-25',
+				isOpen && 'opacity-0 scale-90 xl:opacity-100'
+			)}
+		/>
+		<IconChevronRight
+			size={32}
+			class={cn(
+				'absolute size-7 scale-x-100 opacity-0 duration-200 xl:size-8 xl:group-hover:scale-95 xl:group-hover:opacity-100',
+				isOpen && '-scale-x-100 opacity-0 xl:opacity-100'
+			)}
+		/>
+	{/if}
 </Button>
 
-<div
+<nav
+	id="app-sidebar"
+	aria-label="Main"
+	aria-hidden={!isOpen}
+	inert={!isOpen}
 	class={cn(
-		'top-0 left-0 p-8 fixed h-full flex flex-col gap-4 w-sm overflow-hidden duration-200 bg-background z-10 shadow-2xl xl:shadow-none',
-		!isOpen && '-translate-x-full'
+		'fixed top-0 left-0 z-20 flex h-dvh w-[min(100%,24rem)] max-w-[85vw] flex-col gap-4 overflow-y-auto overscroll-contain bg-background p-6 pt-[4.5rem] shadow-2xl transition-transform duration-200 ease-out xl:h-full xl:w-sm xl:max-w-none xl:p-8 xl:pt-8 xl:shadow-none',
+		isOpen ? 'translate-x-0' : 'pointer-events-none -translate-x-full'
 	)}
 >
-	<div class="h-12"></div>
+	<div class="hidden h-12 shrink-0 xl:block" aria-hidden="true"></div>
 	{#each items as item, index (index)}
 		{@render navLink(item.href, item.name)}
 	{/each}
@@ -71,9 +138,9 @@
 	{@render navLink('/settings', 'Settings')}
 	<DropdownMenu.Root>
 		<DropdownMenu.Trigger
-			class="font-heading text-2xl text-foreground flex flex-row items-center gap-2 w-full"
+			class="font-heading flex w-full flex-row items-center gap-2 text-2xl text-foreground"
 		>
-			<p class="truncate w-full text-start">{user?.name || user?.email}</p>
+			<p class="w-full truncate text-start">{user?.name || user?.email}</p>
 			<IconChevronUp stroke={2} />
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Content class="w-fit" align="end">
@@ -83,4 +150,4 @@
 			</DropdownMenu.Item>
 		</DropdownMenu.Content>
 	</DropdownMenu.Root>
-</div>
+</nav>
