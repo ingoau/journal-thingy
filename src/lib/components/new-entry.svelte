@@ -5,5 +5,5 @@
 </script>
 
 <div class="opacity-50">
-	<Entry entry={{ id: 'new', content: '<p></p>', createdAt: new Date() }} {showDate} />
+	<Entry entry={{ id: 'new', content: '<p></p>', createdAt: new Date(), mood: null }} {showDate} />
 </div>

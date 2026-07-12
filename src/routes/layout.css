@@ -4,6 +4,8 @@
 @import '@fontsource-variable/outfit';
 @import '@fontsource-variable/noto-serif';
 @import 'uploadthing/tw/v4';
+@import 'leaflet/dist/leaflet.css';
+
 @source '../../node_modules/@uploadthing/svelte/dist'; /** <-- depends on your project structure */
 
 @custom-variant dark (&:is(.dark *));

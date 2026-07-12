@@ -3,7 +3,7 @@
 	import EntryEditor from './entry-editor.svelte';
 	import { cn } from '$lib/utils';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
+	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
 	import {
 		IconTrash,
 		IconPhoto,
@@ -17,6 +17,19 @@
 	import { createUploadThing } from '$lib/utils/uploadthing';
 	import { MOODS, moodColor, type Mood } from '$lib/mood';
 	import type { entry as entryTable } from '$lib/server/db/schema';
+	import * as Dialog from "$lib/components/ui/dialog/index.js";
+	import { onMount } from 'svelte';
+	import type L from 'leaflet';
+	import PickAPlace from 'svelte-pick-a-place';
+	import { tick } from 'svelte';
+	import LocationMap from './location-map.svelte';
+
+	let leaflet = $state<typeof L>();
+
+	onMount(async () => {
+		const module = await import('leaflet');
+		leaflet = module.default;
+	});
 
 	const { startUpload, isUploading } = createUploadThing('imageUploader', {
 		onClientUploadComplete: async (res) => {
@@ -89,6 +102,111 @@
 		if (!response.ok) return;
 		await invalidateAll();
 	}
+
+	let location = $state({
+		lat: 0,
+		lng: 0
+	});
+	let locationReady = $state(false);
+
+	type LocationFeature = {
+		type: 'Feature';
+		geometry: {
+			type: 'Point';
+			coordinates: [number, number];
+		};
+	};
+
+	function handleLocationUpdate(
+		event: CustomEvent<LocationFeature> | LocationFeature
+	) {
+		const feature = 'detail' in event ? event.detail : event;
+		if (feature?.geometry?.type !== 'Point') return;
+
+		const [lng, lat] = feature.geometry.coordinates;
+		location = { lat, lng };
+		locationReady = true;
+	}
+
+	async function saveLocation() {
+		if (!locationReady) return;
+
+		const body = new FormData();
+		body.set('id', entry.id);
+		body.set('latitude', String(location.lat));
+		body.set('longitude', String(location.lng));
+		const response = await fetch('?/addLocationAttachment', { method: 'POST', body });
+		if (!response.ok) return;
+		await invalidateAll();
+
+		location = { lat: 0, lng: 0 };
+		locationReady = false;
+		dialogOpen = false;
+	}
+
+	async function removeLocation(latitude: number, longitude: number) {
+		const body = new FormData();
+		body.set('id', entry.id);
+		body.set('latitude', String(latitude));
+		body.set('longitude', String(longitude));
+		const response = await fetch('?/removeLocationAttachment', { method: 'POST', body });
+		if (!response.ok) return;
+		await invalidateAll();
+	}
+
+	function getCurrentLocation() {
+		return new Promise<GeolocationPosition>((resolve, reject) => {
+			if (!navigator.geolocation) {
+				reject(new Error('Geolocation is not supported'));
+				return;
+			}
+
+			navigator.geolocation.getCurrentPosition(resolve, reject, {
+				enableHighAccuracy: true,
+				timeout: 10000,
+				maximumAge: 0
+			});
+		});
+	}
+
+	async function handleDialogOpen(open: boolean) {
+		if (!open) {
+			location = { lat: 0, lng: 0 };
+			locationReady = false;
+			return;
+		}
+
+		locationReady = false;
+
+		try {
+			const position = await getCurrentLocation();
+
+			location = {
+				lat: position.coords.latitude,
+				lng: position.coords.longitude
+			};
+			locationReady = true;
+		} catch (error) {
+			console.error('Could not get location:', error);
+
+			location = {
+				lat: -33.8688,
+				lng: 151.2093
+			};
+			locationReady = true;
+		}
+	}
+
+	let dialogOpen = $state(false);
+
+	$effect(() => {
+		if (dialogOpen) {
+			tick().then(() => {
+				window.dispatchEvent(new Event('resize'));
+			});
+		}
+	});
+
 </script>
 
 <div class="relative rounded-xl p-2">
@@ -124,6 +242,23 @@
 										<span class="sr-only">Remove image</span>
 									</Button>
 								</div>
+							{:else if attachment.type === 'location'}
+								<div class="group relative isolate z-0 shrink-0">
+									<LocationMap
+										latitude={attachment.latitude}
+										longitude={attachment.longitude}
+										class="h-48 w-64 rounded-lg"
+									/>
+									<Button
+										variant="secondary"
+										size="icon"
+										class="absolute top-1 right-1 z-10 size-7 opacity-0 transition-opacity group-hover:opacity-100"
+										onclick={() => removeLocation(attachment.latitude, attachment.longitude)}
+									>
+										<IconX class="size-4" />
+										<span class="sr-only">Remove location</span>
+									</Button>
+								</div>
 							{/if}
 						{/each}
 					</div>
@@ -141,10 +276,51 @@
 							<IconPhoto />
 							{$isUploading ? 'Uploading...' : 'Add Photos'}
 						</Button>
-						<Button variant="secondary">
-							<IconLocation />
-							Add Location
-						</Button>
+						<Dialog.Root bind:open={dialogOpen} onOpenChange={handleDialogOpen}>
+							<Dialog.Trigger
+								type="button"
+								class={buttonVariants({ variant: 'secondary' })}
+							>
+								<IconLocation />
+								Add Location
+							</Dialog.Trigger>
+							<Dialog.Content class="sm:max-w-106.25 w-full overflow-hidden rounded-lg">
+								<Dialog.Header>
+									<Dialog.Title>Add location</Dialog.Title>
+									<Dialog.Description>
+										Pick a location to add to your entry
+									</Dialog.Description>
+								</Dialog.Header>
+								{#if dialogOpen && leaflet}
+									<div class="h-75 overflow-hidden">
+										<PickAPlace
+											leaflet={leaflet}
+											lat={location.lat}
+											lng={location.lng}
+											zoom={13}
+											selectionModes={['point']}
+											onupdate={handleLocationUpdate}
+											buttons={false}
+										/>
+									</div>
+								{/if}
+								<Dialog.Footer>
+									<Dialog.Close
+										type="button"
+										class={buttonVariants({ variant: 'outline' })}
+									>
+										Cancel
+									</Dialog.Close>
+									<Button
+										type="button"
+										onclick={saveLocation}
+										disabled={!locationReady}
+									>
+										Save changes
+									</Button>
+								</Dialog.Footer>
+							</Dialog.Content>
+						</Dialog.Root>
 						<DropdownMenu.Root>
 							<DropdownMenu.Trigger>
 								{#snippet child({ props })}

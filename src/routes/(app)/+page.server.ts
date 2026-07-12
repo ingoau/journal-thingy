@@ -127,5 +127,55 @@ export const actions = {
 			.update(entry)
 			.set({ attachments: attachments.length > 0 ? attachments : null })
 			.where(and(eq(entry.id, id), eq(entry.userId, user.id)));
+	},
+	addLocationAttachment: async ({ request, locals }) => {
+		const user = requireUser(locals.user);
+
+		const data = await request.formData();
+		const id = data.get('id');
+		const latitude = Number(data.get('latitude'));
+		const longitude = Number(data.get('longitude'));
+
+		if (typeof id !== 'string' || !id || Number.isNaN(latitude) || Number.isNaN(longitude)) {
+			error(400, 'Missing location data');
+		}
+
+		const existing = await requireOwnedEntry(user.id, id);
+		const attachments = [
+			...(existing.attachments ?? []),
+			{ type: 'location' as const, latitude, longitude }
+		];
+
+		await db
+			.update(entry)
+			.set({ attachments })
+			.where(and(eq(entry.id, id), eq(entry.userId, user.id)));
+	},
+	removeLocationAttachment: async ({ request, locals }) => {
+		const user = requireUser(locals.user);
+
+		const data = await request.formData();
+		const id = data.get('id');
+		const latitude = Number(data.get('latitude'));
+		const longitude = Number(data.get('longitude'));
+
+		if (typeof id !== 'string' || !id || Number.isNaN(latitude) || Number.isNaN(longitude)) {
+			error(400, 'Missing location data');
+		}
+
+		const existing = await requireOwnedEntry(user.id, id);
+		const attachments = (existing.attachments ?? []).filter(
+			(attachment) =>
+				!(
+					attachment.type === 'location' &&
+					attachment.latitude === latitude &&
+					attachment.longitude === longitude
+				)
+		);
+
+		await db
+			.update(entry)
+			.set({ attachments: attachments.length > 0 ? attachments : null })
+			.where(and(eq(entry.id, id), eq(entry.userId, user.id)));
 	}
 } satisfies Actions;
