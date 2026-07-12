@@ -1,4 +1,4 @@
-import { sanitizeEntryHtml } from '$lib/sanitize';
+import { sanitizeEntryHtml } from '$lib/server/sanitize';
 import { db } from '$lib/server/db';
 import { requireOwnedEntry, requireUser } from '$lib/server/entries';
 import { error, redirect } from '@sveltejs/kit';
