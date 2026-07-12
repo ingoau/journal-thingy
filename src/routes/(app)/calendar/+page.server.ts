@@ -27,10 +27,16 @@ export const load: PageServerLoad = async ({ locals }) => {
 		byDay.get(key)!.push({ mood: row.mood, createdAt: new Date(row.createdAt) });
 	}
 
-	const dayMoods: Record<string, Mood> = {};
+	const dayMoods: Record<string, Mood[]> = {};
 	for (const [key, entries] of byDay) {
-		const latest = entries.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
-		dayMoods[key] = latest.mood;
+		const seen = new Set<Mood>();
+		const moods: Mood[] = [];
+		for (const entry of entries.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())) {
+			if (seen.has(entry.mood)) continue;
+			seen.add(entry.mood);
+			moods.push(entry.mood);
+		}
+		dayMoods[key] = moods;
 	}
 
 	return { dayMoods };

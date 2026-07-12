@@ -22,3 +22,18 @@ export function moodColor(mood: Mood | null | undefined): string | undefined {
 	if (!mood) return undefined;
 	return MOODS.find((m) => m.value === mood)?.color;
 }
+
+export function moodBackground(moods: Mood[] | Mood | null | undefined): string | undefined {
+	if (!moods) return undefined;
+	const list = Array.isArray(moods) ? moods : [moods];
+	if (list.length === 0) return undefined;
+
+	const colors = list.map(moodColor).filter((color): color is string => !!color);
+	if (colors.length === 0) return undefined;
+	if (colors.length === 1) return colors[0];
+
+	const stops = colors
+		.map((color, index) => `${color} ${(index / (colors.length - 1)) * 100}%`)
+		.join(', ');
+	return `linear-gradient(135deg, ${stops})`;
+}

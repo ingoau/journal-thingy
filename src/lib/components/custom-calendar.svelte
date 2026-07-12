@@ -2,9 +2,9 @@
 	import { DateTime } from 'luxon';
 	import { goto } from '$app/navigation';
 	import { cn } from '$lib/utils';
-	import { moodColor, type Mood } from '$lib/mood';
+	import { moodBackground, type Mood } from '$lib/mood';
 
-	let { dayMoods }: { dayMoods: Record<string, Mood> } = $props();
+	let { dayMoods }: { dayMoods: Record<string, Mood[]> } = $props();
 
 	const MONTHS_PER_ROW = 3;
 	const INITIAL_ROWS_EACH_SIDE = 3; // generous initial buffer so there's always something to scroll
@@ -134,7 +134,7 @@
 							{#each Array(total) as _, i (i)}
 								{@const date = month.plus({ days: i })}
 								{@const key = date.toFormat('yyyy-MM-dd')}
-								{@const color = moodColor(dayMoods[key])}
+								{@const background = moodBackground(dayMoods[key])}
 								{@const isToday = date.hasSame(today, 'day')}
 								<button
 									onclick={() => openDay(date)}
@@ -142,7 +142,7 @@
 										'aspect-square rounded-md border border-border text-xs transition hover:scale-105 hover:shadow',
 										isToday && 'ring-2 ring-primary ring-offset-2 ring-offset-background font-bold'
 									)}
-									style:background-color={color}
+									style:background={background}
 								>
 									{i + 1}
 								</button>
