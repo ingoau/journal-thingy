@@ -76,7 +76,6 @@
 <div class="mx-auto w-full max-w-3xl space-y-10 p-6">
 	<div>
 		<h1 class="font-heading text-3xl">Settings</h1>
-		<p class="text-muted-foreground mt-1 text-sm">Manage your account and appearance.</p>
 	</div>
 
 	<section class="space-y-4">
