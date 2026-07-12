@@ -99,8 +99,8 @@
 		}
 	}
 
-	async function saveLocation(event: SubmitEvent) {
-		event.preventDefault();
+	async function saveLocation() {
+		if (location.lat === 0 && location.lng === 0) return;
 
 		const body = new FormData();
 		body.set('id', entry.id);
@@ -138,22 +138,25 @@
 	}
 
 	async function handleDialogOpen(open: boolean) {
-		if (open && location.lat === 0 && location.lng === 0) {
-			try {
-				const position = await getCurrentLocation();
+		if (!open) {
+			location = { lat: 0, lng: 0 };
+			return;
+		}
 
-				location = {
-					lat: position.coords.latitude,
-					lng: position.coords.longitude
-				};
-			} catch (error) {
-				console.error('Could not get location:', error);
+		try {
+			const position = await getCurrentLocation();
 
-				location = {
-					lat: -33.8688,
-					lng: 151.2093
-				};
-			}
+			location = {
+				lat: position.coords.latitude,
+				lng: position.coords.longitude
+			};
+		} catch (error) {
+			console.error('Could not get location:', error);
+
+			location = {
+				lat: -33.8688,
+				lng: 151.2093
+			};
 		}
 	}
 
@@ -237,47 +240,51 @@
 							{$isUploading ? 'Uploading...' : 'Add Photos'}
 						</Button>
 						<Dialog.Root bind:open={dialogOpen} onOpenChange={handleDialogOpen}>
-							<form onsubmit={saveLocation}>
-								<Dialog.Trigger
-									type="button"
-									class={buttonVariants({ variant: "secondary" })}
-								>
-									<IconLocation />
-									Add Location
-								</Dialog.Trigger>
-								<Dialog.Content class="sm:max-w-106.25 w-full overflow-hidden rounded-lg">
-									<Dialog.Header>
-										<Dialog.Title>Add location</Dialog.Title>
-										<Dialog.Description>
-											Pick a location to add to your entry
-										</Dialog.Description>
-									</Dialog.Header>
-									{#if dialogOpen && leaflet}
-										<div class="h-75 overflow-hidden">
-											{#key `${location.lat}-${location.lng}`}
-												<PickAPlace
-													leaflet={leaflet}
-													lat={location.lat}
-													lng={location.lng}
-													zoom={13}
-													selectionModes={["point"]}
-													on:update={handleLocationUpdate}
-													buttons={false}
-												/>
-											{/key}
-										</div>
-									{/if}
-									<Dialog.Footer>
-										<Dialog.Close
-											type="button"
-											class={buttonVariants({ variant: "outline" })}
-										>
-											Cancel
-										</Dialog.Close>
-										<Button type="submit">Save changes</Button>
-									</Dialog.Footer>
-								</Dialog.Content>
-							</form>
+							<Dialog.Trigger
+								type="button"
+								class={buttonVariants({ variant: 'secondary' })}
+							>
+								<IconLocation />
+								Add Location
+							</Dialog.Trigger>
+							<Dialog.Content class="sm:max-w-106.25 w-full overflow-hidden rounded-lg">
+								<Dialog.Header>
+									<Dialog.Title>Add location</Dialog.Title>
+									<Dialog.Description>
+										Pick a location to add to your entry
+									</Dialog.Description>
+								</Dialog.Header>
+								{#if dialogOpen && leaflet}
+									<div class="h-75 overflow-hidden">
+										{#key `${location.lat}-${location.lng}`}
+											<PickAPlace
+												leaflet={leaflet}
+												lat={location.lat}
+												lng={location.lng}
+												zoom={13}
+												selectionModes={['point']}
+												on:update={handleLocationUpdate}
+												buttons={false}
+											/>
+										{/key}
+									</div>
+								{/if}
+								<Dialog.Footer>
+									<Dialog.Close
+										type="button"
+										class={buttonVariants({ variant: 'outline' })}
+									>
+										Cancel
+									</Dialog.Close>
+									<Button
+										type="button"
+										onclick={saveLocation}
+										disabled={location.lat === 0 && location.lng === 0}
+									>
+										Save changes
+									</Button>
+								</Dialog.Footer>
+							</Dialog.Content>
 						</Dialog.Root>
 						<div class="grow"></div>
 						<DropdownMenu.Root>
