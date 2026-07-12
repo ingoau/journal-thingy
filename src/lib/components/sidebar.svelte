@@ -14,7 +14,7 @@
 
 	const items = [
 		{ name: 'Timeline', href: '/' },
-		{ name: 'Calender', href: '/calender' }
+		{ name: 'Calendar', href: '/calendar' }
 	];
 
 	async function logout() {
@@ -51,15 +51,15 @@
 	<IconChevronRight
 		size={32}
 		class={cn(
-			'absolute size-8 opacity-0 group-hover:opacity-100 group-hover:scale-95 duration-200 scale-x-100',
-			isOpen && '-scale-x-100'
+			'absolute size-8 opacity-0 group-hover:opacity-100 group-hover:scale-95 duration-200',
+			isOpen && 'rotate-180'
 		)}
 	/>
 </Button>
 
 <div
 	class={cn(
-		'top-0 left-0 p-8 fixed h-full flex flex-col gap-4 w-sm overflow-hidden duration-200 bg-background z-10 shadow-2xl xl:shadow-none',
+		'top-0 left-0 p-8 fixed h-full flex flex-col gap-4 w-sm overflow-hidden duration-200 z-10 shadow-2xl xl:shadow-none bg-card xl:bg-background',
 		!isOpen && '-translate-x-full'
 	)}
 >
