@@ -107,18 +107,29 @@
 		lat: 0,
 		lng: 0
 	});
+	let locationReady = $state(false);
 
-	function handleLocationUpdate(event: { detail: { lat: never; lng: never; }; }) {
-		const { lat, lng } = event.detail;
+	type LocationFeature = {
+		type: 'Feature';
+		geometry: {
+			type: 'Point';
+			coordinates: [number, number];
+		};
+	};
 
-		location = {
-			lat,
-			lng
-		}
+	function handleLocationUpdate(
+		event: CustomEvent<LocationFeature> | LocationFeature
+	) {
+		const feature = 'detail' in event ? event.detail : event;
+		if (feature?.geometry?.type !== 'Point') return;
+
+		const [lng, lat] = feature.geometry.coordinates;
+		location = { lat, lng };
+		locationReady = true;
 	}
 
 	async function saveLocation() {
-		if (location.lat === 0 && location.lng === 0) return;
+		if (!locationReady) return;
 
 		const body = new FormData();
 		body.set('id', entry.id);
@@ -129,6 +140,7 @@
 		await invalidateAll();
 
 		location = { lat: 0, lng: 0 };
+		locationReady = false;
 		dialogOpen = false;
 	}
 
@@ -160,8 +172,11 @@
 	async function handleDialogOpen(open: boolean) {
 		if (!open) {
 			location = { lat: 0, lng: 0 };
+			locationReady = false;
 			return;
 		}
+
+		locationReady = false;
 
 		try {
 			const position = await getCurrentLocation();
@@ -170,6 +185,7 @@
 				lat: position.coords.latitude,
 				lng: position.coords.longitude
 			};
+			locationReady = true;
 		} catch (error) {
 			console.error('Could not get location:', error);
 
@@ -177,6 +193,7 @@
 				lat: -33.8688,
 				lng: 151.2093
 			};
+			locationReady = true;
 		}
 	}
 
@@ -226,7 +243,7 @@
 									</Button>
 								</div>
 							{:else if attachment.type === 'location'}
-								<div class="group relative shrink-0">
+								<div class="group relative isolate z-0 shrink-0">
 									<LocationMap
 										latitude={attachment.latitude}
 										longitude={attachment.longitude}
@@ -235,7 +252,7 @@
 									<Button
 										variant="secondary"
 										size="icon"
-										class="absolute top-1 right-1 z-1000 size-7 opacity-0 transition-opacity group-hover:opacity-100"
+										class="absolute top-1 right-1 z-10 size-7 opacity-0 transition-opacity group-hover:opacity-100"
 										onclick={() => removeLocation(attachment.latitude, attachment.longitude)}
 									>
 										<IconX class="size-4" />
@@ -276,17 +293,15 @@
 								</Dialog.Header>
 								{#if dialogOpen && leaflet}
 									<div class="h-75 overflow-hidden">
-										{#key `${location.lat}-${location.lng}`}
-											<PickAPlace
-												leaflet={leaflet}
-												lat={location.lat}
-												lng={location.lng}
-												zoom={13}
-												selectionModes={['point']}
-												on:update={handleLocationUpdate}
-												buttons={false}
-											/>
-										{/key}
+										<PickAPlace
+											leaflet={leaflet}
+											lat={location.lat}
+											lng={location.lng}
+											zoom={13}
+											selectionModes={['point']}
+											onupdate={handleLocationUpdate}
+											buttons={false}
+										/>
 									</div>
 								{/if}
 								<Dialog.Footer>
@@ -299,7 +314,7 @@
 									<Button
 										type="button"
 										onclick={saveLocation}
-										disabled={location.lat === 0 && location.lng === 0}
+										disabled={!locationReady}
 									>
 										Save changes
 									</Button>

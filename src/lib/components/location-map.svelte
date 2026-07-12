@@ -48,4 +48,16 @@
 	});
 </script>
 
-<div bind:this={container} class={className}></div>
+<div class="entry-location-map relative isolate z-0 overflow-hidden {className}">
+	<div bind:this={container} class="h-full w-full"></div>
+</div>
+
+<style>
+	.entry-location-map :global(.leaflet-container),
+	.entry-location-map :global(.leaflet-pane),
+	.entry-location-map :global(.leaflet-top),
+	.entry-location-map :global(.leaflet-bottom),
+	.entry-location-map :global(.leaflet-control) {
+		z-index: 1 !important;
+	}
+</style>
