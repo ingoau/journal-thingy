@@ -31,7 +31,11 @@
 					if (!isEmpty) {
 						const body = new FormData();
 						body.set('content', html);
-						await fetch('?/create', { method: 'POST', body });
+						const response = await fetch('?/create', { method: 'POST', body });
+						if (!response.ok) {
+							// Keep the editor content when the server rejects the create (e.g. 401/403).
+							return;
+						}
 						await invalidateAll();
 					}
 					editor?.commands.clearContent();
@@ -39,7 +43,11 @@
 					const body = new FormData();
 					body.set('id', id);
 					body.set('content', html);
-					await fetch('?/update', { method: 'POST', body });
+					const response = await fetch('?/update', { method: 'POST', body });
+					if (!response.ok) {
+						// Keep the editor open/content when the server rejects the save (e.g. 401/403).
+						return;
+					}
 				}
 			}
 		});
