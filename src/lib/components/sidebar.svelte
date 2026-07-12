@@ -51,8 +51,8 @@
 	<IconChevronRight
 		size={32}
 		class={cn(
-			'absolute size-8 opacity-0 group-hover:opacity-100 group-hover:scale-95 duration-200 scale-x-100',
-			isOpen && '-scale-x-100'
+			'absolute size-8 opacity-0 group-hover:opacity-100 group-hover:scale-95 duration-200',
+			isOpen && 'rotate-180'
 		)}
 	/>
 </Button>
