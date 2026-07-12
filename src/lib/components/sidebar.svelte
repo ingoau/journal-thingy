@@ -69,7 +69,7 @@
 		{href}
 		onclick={closeMobile}
 		class={cn(
-			'font-heading origin-left text-2xl text-muted-foreground duration-200 hover:text-foreground active:scale-97',
+			'font-heading origin-left rounded-lg py-1.5 text-2xl text-muted-foreground duration-200 hover:text-foreground active:scale-97',
 			href === page.url.pathname && 'text-foreground'
 		)}
 	>
@@ -126,8 +126,8 @@
 	aria-hidden={!isOpen}
 	inert={!isOpen}
 	class={cn(
-		'fixed top-0 left-0 z-20 flex h-dvh w-[min(100%,24rem)] max-w-[85vw] flex-col gap-4 overflow-y-auto overscroll-contain bg-background p-6 pt-[4.5rem] shadow-2xl transition-transform duration-200 ease-out xl:h-full xl:w-sm xl:max-w-none xl:p-8 xl:pt-8 xl:shadow-none',
-		isOpen ? 'translate-x-0' : 'pointer-events-none -translate-x-full'
+		'fixed top-0 left-0 z-20 flex h-dvh w-[min(100%,24rem)] max-w-[85vw] flex-col gap-4 overflow-y-auto overscroll-contain bg-background p-6 pt-[4.5rem] transition-[transform,box-shadow] duration-200 ease-out xl:h-full xl:w-sm xl:max-w-none xl:p-8 xl:pt-8',
+		isOpen ? 'translate-x-0 shadow-2xl xl:shadow-none' : 'pointer-events-none -translate-x-full shadow-none'
 	)}
 >
 	<div class="hidden h-12 shrink-0 xl:block" aria-hidden="true"></div>
