@@ -122,5 +122,73 @@ export const actions = {
 			.update(entry)
 			.set({ attachments: attachments.length > 0 ? attachments : null })
 			.where(and(eq(entry.id, id), eq(entry.userId, locals.user.id)));
+	},
+	addLocationAttachment: async ({ request, locals }) => {
+		if (!locals.user) {
+			error(401, 'Unauthorized');
+		}
+
+		const data = await request.formData();
+		const id = String(data.get('id'));
+		const latitude = Number(data.get('latitude'));
+		const longitude = Number(data.get('longitude'));
+
+		if (!id || Number.isNaN(latitude) || Number.isNaN(longitude)) {
+			error(400, 'Missing location data');
+		}
+
+		const existing = await db.query.entry.findFirst({
+			where: and(eq(entry.id, id), eq(entry.userId, locals.user.id))
+		});
+
+		if (!existing) {
+			error(404, 'Entry not found');
+		}
+
+		const attachments = [
+			...(existing.attachments ?? []),
+			{ type: 'location' as const, latitude, longitude }
+		];
+
+		await db
+			.update(entry)
+			.set({ attachments })
+			.where(and(eq(entry.id, id), eq(entry.userId, locals.user.id)));
+	},
+	removeLocationAttachment: async ({ request, locals }) => {
+		if (!locals.user) {
+			error(401, 'Unauthorized');
+		}
+
+		const data = await request.formData();
+		const id = String(data.get('id'));
+		const latitude = Number(data.get('latitude'));
+		const longitude = Number(data.get('longitude'));
+
+		if (!id || Number.isNaN(latitude) || Number.isNaN(longitude)) {
+			error(400, 'Missing location data');
+		}
+
+		const existing = await db.query.entry.findFirst({
+			where: and(eq(entry.id, id), eq(entry.userId, locals.user.id))
+		});
+
+		if (!existing) {
+			error(404, 'Entry not found');
+		}
+
+		const attachments = (existing.attachments ?? []).filter(
+			(attachment) =>
+				!(
+					attachment.type === 'location' &&
+					attachment.latitude === latitude &&
+					attachment.longitude === longitude
+				)
+		);
+
+		await db
+			.update(entry)
+			.set({ attachments: attachments.length > 0 ? attachments : null })
+			.where(and(eq(entry.id, id), eq(entry.userId, locals.user.id)));
 	}
 } satisfies Actions;

@@ -17,8 +17,9 @@
 	import * as Dialog from "$lib/components/ui/dialog/index.js";
 	import { onMount } from 'svelte';
 	import type L from 'leaflet';
-	import PickAPlace from "svelte-pick-a-place";
+	import PickAPlace from 'svelte-pick-a-place';
 	import { tick } from 'svelte';
+	import LocationMap from './location-map.svelte';
 
 	let leaflet: typeof L = $state();
 
@@ -101,10 +102,24 @@
 	async function saveLocation(event: SubmitEvent) {
 		event.preventDefault();
 
-		console.log(entry.id, {
-			lat: location.lat,
-			lng: location.lng
-		});
+		const body = new FormData();
+		body.set('id', entry.id);
+		body.set('latitude', String(location.lat));
+		body.set('longitude', String(location.lng));
+		await fetch('?/addLocationAttachment', { method: 'POST', body });
+		await invalidateAll();
+
+		location = { lat: 0, lng: 0 };
+		dialogOpen = false;
+	}
+
+	async function removeLocation(latitude: number, longitude: number) {
+		const body = new FormData();
+		body.set('id', entry.id);
+		body.set('latitude', String(latitude));
+		body.set('longitude', String(longitude));
+		await fetch('?/removeLocationAttachment', { method: 'POST', body });
+		await invalidateAll();
 	}
 
 	function getCurrentLocation() {
@@ -123,8 +138,6 @@
 	}
 
 	async function handleDialogOpen(open: boolean) {
-		dialogOpen = open;
-
 		if (open && location.lat === 0 && location.lng === 0) {
 			try {
 				const position = await getCurrentLocation();
@@ -189,6 +202,23 @@
 										<span class="sr-only">Remove image</span>
 									</Button>
 								</div>
+							{:else if attachment.type === 'location'}
+								<div class="group relative shrink-0">
+									<LocationMap
+										latitude={attachment.latitude}
+										longitude={attachment.longitude}
+										class="h-48 w-64 rounded-lg"
+									/>
+									<Button
+										variant="secondary"
+										size="icon"
+										class="absolute top-1 right-1 z-1000 size-7 opacity-0 transition-opacity group-hover:opacity-100"
+										onclick={() => removeLocation(attachment.latitude, attachment.longitude)}
+									>
+										<IconX class="size-4" />
+										<span class="sr-only">Remove location</span>
+									</Button>
+								</div>
 							{/if}
 						{/each}
 					</div>
@@ -206,7 +236,7 @@
 							<IconPhoto />
 							{$isUploading ? 'Uploading...' : 'Add Photos'}
 						</Button>
-						<Dialog.Root onOpenChange={handleDialogOpen}>
+						<Dialog.Root bind:open={dialogOpen} onOpenChange={handleDialogOpen}>
 							<form onsubmit={saveLocation}>
 								<Dialog.Trigger
 									type="button"
