@@ -3,7 +3,7 @@
 	import EntryEditor from './entry-editor.svelte';
 	import { cn } from '$lib/utils';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
+	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
 	import {
 		IconTrash,
 		IconPhoto,
@@ -14,6 +14,18 @@
 	import { invalidateAll } from '$app/navigation';
 	import { createUploadThing } from '$lib/utils/uploadthing';
 	import type { entry as entryTable } from '$lib/server/db/schema';
+	import * as Dialog from "$lib/components/ui/dialog/index.js";
+	import { onMount } from 'svelte';
+	import type L from 'leaflet';
+	import PickAPlace from "svelte-pick-a-place";
+	import { tick } from 'svelte';
+
+	let leaflet: typeof L = $state();
+
+	onMount(async () => {
+		const module = await import('leaflet');
+		leaflet = module.default;
+	});
 
 	const { startUpload, isUploading } = createUploadThing('imageUploader', {
 		onClientUploadComplete: async (res) => {
@@ -71,6 +83,77 @@
 		await fetch('?/removeAttachment', { method: 'POST', body });
 		await invalidateAll();
 	}
+
+	let location = $state({
+		lat: 0,
+		lng: 0
+	});
+
+	function handleLocationUpdate(event: { detail: { lat: never; lng: never; }; }) {
+		const { lat, lng } = event.detail;
+
+		location = {
+			lat,
+			lng
+		}
+	}
+
+	async function saveLocation(event: SubmitEvent) {
+		event.preventDefault();
+
+		console.log(entry.id, {
+			lat: location.lat,
+			lng: location.lng
+		});
+	}
+
+	function getCurrentLocation() {
+		return new Promise<GeolocationPosition>((resolve, reject) => {
+			if (!navigator.geolocation) {
+				reject(new Error('Geolocation is not supported'));
+				return;
+			}
+
+			navigator.geolocation.getCurrentPosition(resolve, reject, {
+				enableHighAccuracy: true,
+				timeout: 10000,
+				maximumAge: 0
+			});
+		});
+	}
+
+	async function handleDialogOpen(open: boolean) {
+		dialogOpen = open;
+
+		if (open && location.lat === 0 && location.lng === 0) {
+			try {
+				const position = await getCurrentLocation();
+
+				location = {
+					lat: position.coords.latitude,
+					lng: position.coords.longitude
+				};
+			} catch (error) {
+				console.error('Could not get location:', error);
+
+				location = {
+					lat: -33.8688,
+					lng: 151.2093
+				};
+			}
+		}
+	}
+
+	let dialogOpen = $state(false);
+
+	$effect(() => {
+		if (dialogOpen) {
+			tick().then(() => {
+				window.dispatchEvent(new Event('resize'));
+			});
+		}
+	});
+
 </script>
 
 <div class="relative rounded-xl p-2">
@@ -123,10 +206,49 @@
 							<IconPhoto />
 							{$isUploading ? 'Uploading...' : 'Add Photos'}
 						</Button>
-						<Button variant="secondary">
-							<IconLocation />
-							Add Location
-						</Button>
+						<Dialog.Root onOpenChange={handleDialogOpen}>
+							<form onsubmit={saveLocation}>
+								<Dialog.Trigger
+									type="button"
+									class={buttonVariants({ variant: "secondary" })}
+								>
+									<IconLocation />
+									Add Location
+								</Dialog.Trigger>
+								<Dialog.Content class="sm:max-w-106.25 w-full overflow-hidden rounded-lg">
+									<Dialog.Header>
+										<Dialog.Title>Add location</Dialog.Title>
+										<Dialog.Description>
+											Pick a location to add to your entry
+										</Dialog.Description>
+									</Dialog.Header>
+									{#if dialogOpen && leaflet}
+										<div class="h-75 overflow-hidden">
+											{#key `${location.lat}-${location.lng}`}
+												<PickAPlace
+													leaflet={leaflet}
+													lat={location.lat}
+													lng={location.lng}
+													zoom={13}
+													selectionModes={["point"]}
+													on:update={handleLocationUpdate}
+													buttons={false}
+												/>
+											{/key}
+										</div>
+									{/if}
+									<Dialog.Footer>
+										<Dialog.Close
+											type="button"
+											class={buttonVariants({ variant: "outline" })}
+										>
+											Cancel
+										</Dialog.Close>
+										<Button type="submit">Save changes</Button>
+									</Dialog.Footer>
+								</Dialog.Content>
+							</form>
+						</Dialog.Root>
 						<div class="grow"></div>
 						<DropdownMenu.Root>
 							<DropdownMenu.Trigger>
