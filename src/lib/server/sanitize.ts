@@ -1,4 +1,5 @@
-import DOMPurify from 'isomorphic-dompurify';
+import DOMPurify from 'dompurify';
+import { parseHTML } from 'linkedom';
 
 const ALLOWED_TAGS = [
 	'p',
@@ -18,8 +19,11 @@ const ALLOWED_TAGS = [
 	'br'
 ];
 
+const { window } = parseHTML('');
+const purify = DOMPurify(window as unknown as Window);
+
 export function sanitizeEntryHtml(html: string) {
-	return DOMPurify.sanitize(html, {
+	return purify.sanitize(html, {
 		ALLOWED_TAGS,
 		ALLOWED_ATTR: []
 	});

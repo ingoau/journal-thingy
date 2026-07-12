@@ -24,8 +24,6 @@
 		"@fontsource-variable/noto-serif": "^5.2.9",
 		"@fontsource-variable/outfit": "^5.2.8",
 		"@internationalized/date": "^3.12.0",
-		"@libsql/client": "^0.17.3",
-		"@sveltejs/adapter-auto": "^7.0.1",
 		"@sveltejs/kit": "^2.63.0",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tabler/icons-svelte": "^3.44.0",
@@ -58,6 +56,8 @@
 		"vite": "^8.0.16"
 	},
 	"dependencies": {
+		"@libsql/client": "^0.17.4",
+		"@sveltejs/adapter-vercel": "^6.3.4",
 		"@tiptap/core": "^3.27.3",
 		"@tiptap/extension-bubble-menu": "^3.27.3",
 		"@tiptap/extension-placeholder": "^3.27.3",
@@ -65,8 +65,9 @@
 		"@tiptap/starter-kit": "^3.27.3",
 		"@types/luxon": "^3.7.2",
 		"@uploadthing/svelte": "^7.3.3",
-		"isomorphic-dompurify": "^3.18.0",
+		"dompurify": "^3.4.12",
 		"leaflet": "^1.9.4",
+		"linkedom": "^0.18.13",
 		"luxon": "^3.7.2",
 		"mode-watcher": "^1.1.0",
 		"resend": "^6.17.2",
