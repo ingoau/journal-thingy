@@ -1,12 +1,12 @@
 // src/routes/(app)/calender/+page.server.ts
 import { db } from '$lib/server/db';
-import { entry } from '$lib/server/db/schema';
+import { entry, type Mood } from '$lib/server/db/schema';
 import { and, eq, gte, lte } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
-    if (!locals.user) return { dayScores: {} };
+	if (!locals.user) return { dayMoods: {} };
 	const now = DateTime.now();
 	const rangeStart = now.minus({ months: 1 }).startOf('month');
 	const rangeEnd = now.plus({ months: 1 }).endOf('month');
@@ -19,18 +19,19 @@ export const load: PageServerLoad = async ({ locals }) => {
 		)
 	});
 
-	const byDay = new Map<string, number[]>();
+	const byDay = new Map<string, { mood: Mood; createdAt: Date }[]>();
 	for (const row of rows) {
-		if (row.score === null || row.score === undefined) continue;
+		if (!row.mood) continue;
 		const key = DateTime.fromJSDate(new Date(row.createdAt)).toFormat('yyyy-MM-dd');
 		if (!byDay.has(key)) byDay.set(key, []);
-		byDay.get(key)!.push(row.score);
+		byDay.get(key)!.push({ mood: row.mood, createdAt: new Date(row.createdAt) });
 	}
 
-	const dayScores: Record<string, number> = {};
-	for (const [key, scores] of byDay) {
-		dayScores[key] = scores.reduce((a, b) => a + b, 0) / scores.length;
+	const dayMoods: Record<string, Mood> = {};
+	for (const [key, entries] of byDay) {
+		const latest = entries.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+		dayMoods[key] = latest.mood;
 	}
 
-	return { dayScores };
+	return { dayMoods };
 };

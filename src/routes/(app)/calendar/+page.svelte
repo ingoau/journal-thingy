@@ -10,5 +10,5 @@
 </svelte:head>
 
 <div class="flex flex-col gap-4 p-8">
-    <CustomCalendar dayScores={data.dayScores} />
+	<CustomCalendar dayMoods={data.dayMoods} />
 </div>
