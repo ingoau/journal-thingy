@@ -14,3 +14,7 @@ cp .env.example .env
 bun run db:push
 bun run dev
 ```
+
+## AI use disclosure
+
+AI was used towards the end to speed up development of features. All primarily AI generated commits are co-authored with the agent that wrote the code.
