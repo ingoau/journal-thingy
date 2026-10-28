@@ -75,7 +75,7 @@ export async function sendEmail({
 export async function sendOTPEmail(
 	email: string,
 	otp: string,
-	type: 'sign-in' | 'email-verification' | 'forget-password'
+	type: 'sign-in' | 'email-verification' | 'forget-password' | 'change-email'
 ): Promise<void> {
 	const templateConfig: Record<typeof type, { template: EmailTemplate; subject: string }> = {
 		'sign-in': {
@@ -89,6 +89,11 @@ export async function sendOTPEmail(
 		'forget-password': {
 			template: 'forget-password-otp',
 			subject: 'Reset Your Password'
+		},
+		// Added in better-auth 1.5+ (only sent if change-email OTP is enabled)
+		'change-email': {
+			template: 'email-verification-otp',
+			subject: 'Verify Your New Email'
 		}
 	};
 
